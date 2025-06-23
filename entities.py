@@ -65,5 +65,6 @@ class Bus:
         # Desenha o onibus como um retangulo amarelo
         pygame.draw.rect(screen, YELLOW, Rect(self.x - 10, self.y - 10, 20, 20))
         font = pygame.font.SysFont(None, 20)
-        text = font.render(f"{self.passengers}", True, WHITE)
-        screen.blit(text, (self.x - 10, self.y - 25))
+        text_surface = font.render(str(self.passengers), True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(self.x, self.y - 15))
+        screen.blit(text_surface, text_rect)
