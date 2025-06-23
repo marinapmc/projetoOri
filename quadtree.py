@@ -3,12 +3,14 @@ import pygame
 
 class QuadTree:
     def __init__(self, boundary, capacity):
+        # Inicializa a quadtree com um retangulo de limite e uma capacidade maxima de pontos
         self.boundary = boundary
         self.capacity = capacity
         self.points = []
         self.divided = False
 
     def subdivide(self):
+        # Dismonta o boundary para termos de coordenadas
         x, y, w, h = self.boundary
         hw, hh = w // 2, h // 2
         self.nw = QuadTree(pygame.Rect(x, y, hw, hh), self.capacity)
