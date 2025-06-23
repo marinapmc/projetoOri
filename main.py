@@ -75,7 +75,7 @@ def main():
         screen.fill(GREEN) # Limpa a tela com a cor verde
         current_time = pygame.time.get_ticks() # Obtém o tempo atual em milissegundos
         # Calcula tempo decorrido e converte para hora do jogo
-        elapsed = elapsed = min(current_time - start_ticks, REAL_DAY_DURATION)
+        elapsed = min(current_time - start_ticks, REAL_DAY_DURATION)
         game_minutes = START_TIME + (elapsed / REAL_DAY_DURATION) * (END_TIME - START_TIME)
         game_hour = int(game_minutes // 60)
         game_minute = int(game_minutes % 60)
