@@ -1,70 +1,68 @@
 # entities.py
 import pygame
-import math
-from pygame import Rect
-from config import BUILDING_TYPES, WHITE, GRAY, YELLOW
+from config import BUILDING_TYPES, MAX_BUILDING_RANGE, GREEN, RED
 
 class Building:
-    def __init__(self, x, y, tipo):
-        # Cordenadas do centro do predio
-        self.x = x
-        self.y = y
-        
-        # Pega o tipo de predio correspondente 
-        props = BUILDING_TYPES[tipo] 
+    def __init__(self, btype, slot_rect, money_ref):
+        self.type = BUILDING_TYPES[btype]
+        self.level = 1
+        self.bounds = slot_rect
+        self.center = (slot_rect[0] + slot_rect[2] // 2,
+                       slot_rect[1] + slot_rect[3] // 2)
+        self.range = self.type['range']
+        self.damage = self.type['damage']
+        self.upgrade_cost = self.type['upgrade_cost']
+        self.money = money_ref
 
-        # Retira de props os atributos do onibus
-        self.radius = props["radius"]
-        self.damage = props["damage"]
-        self.cooldown = props["cooldown"]
-        self.color = props["color"]
-        self.last_attack = 0
+    def can_upgrade(self):
+        return (self.level < self.type['max_level'] and
+                self.money['amount'] >= self.upgrade_cost)
 
-    def draw(self, screen):
-        # Desenha o objeto na posicao correta com a cor correta
-        pygame.draw.circle(screen, self.color, (self.x, self.y), 20)
-        pygame.draw.circle(screen, GRAY, (self.x, self.y), self.radius, 1)
+    def upgrade(self):
+        if self.can_upgrade():
+            self.money['amount'] -= self.upgrade_cost
+            self.level += 1
 
-    def try_attack(self, bus, current_time):
-        # Verifica se o onibus esta dentro do raio de ataque e se o cooldown ja passou
-        if current_time - self.last_attack >= self.cooldown:
-            # Verifica a distancia entre o onibus e o predio
-            if math.hypot(bus.x - self.x, bus.y - self.y) <= self.radius:
-                # Se o onibus estiver dentro do raio, causa dano ao onibus
-                if bus.passengers > 0:
-                    bus.passengers -= self.damage
-                    self.last_attack = current_time
+    def can_attack(self, bus):
+        bx, by, bw, bh = bus.bounds
+        cx, cy = self.center
+        px = max(bx, min(cx, bx + bw))
+        py = max(by, min(cy, by + bh))
+        dx = px - cx
+        dy = py - cy
+        return dx*dx + dy*dy <= self.range*self.range
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, GREEN, self.bounds)
 
 class Bus:
-    def __init__(self, path, passengers):
-        # Inicializa o onibus com um caminho e o numero de passageiros
+    def __init__(self, path, speed=100):
         self.path = path
-        self.index = 0
-        self.x, self.y = self.path[0]
-        self.speed = 1.5
-        self.passengers = passengers
+        self.speed = speed
+        self.current = 0
+        self.position = list(path[0])
+        self.bounds = (*self.position, 20, 20)
+        self.passengers = 10
+        self.finished = False
 
-    def update(self):
-        # Se o onibus nao chegou ao final do caminho, move para o proximo ponto
-        if self.index < len(self.path) - 1:
-            target = self.path[self.index + 1]
-            dx, dy = target[0] - self.x, target[1] - self.y
+    def update(self, dt):
+        if self.current < len(self.path) - 1:
+            sx, sy = self.path[self.current]
+            tx, ty = self.path[self.current + 1]
+            dx, dy = tx - sx, ty - sy
+            dist = (dx*dx + dy*dy)**0.5
+            if dist > 0:
+                ux, uy = dx/dist, dy/dist
+                self.position[0] += ux * self.speed * dt
+                self.position[1] += uy * self.speed * dt
+                self.bounds = (self.position[0], self.position[1], 20, 20)
+                if ((ux>0 and self.position[0]>=tx) or
+                    (ux<0 and self.position[0]<=tx) or
+                    (uy>0 and self.position[1]>=ty) or
+                    (uy<0 and self.position[1]<=ty)):
+                    self.current += 1
+        else:
+            self.finished = True
 
-            # Calcula a distancia para o proximo ponto e move o onibus
-            dist = math.hypot(dx, dy)
-
-            # Se a distancia for menor que a velocidade do onibus, avanca para o proximo ponto
-            if dist < self.speed:
-                self.index += 1
-            else:
-                # Move o onibus na direcao do proximo ponto
-                self.x += dx / dist * self.speed
-                self.y += dy / dist * self.speed
-
-    def draw(self, screen):
-        # Desenha o onibus como um retangulo amarelo
-        pygame.draw.rect(screen, YELLOW, Rect(self.x - 10, self.y - 10, 20, 20))
-        font = pygame.font.SysFont(None, 20)
-        text_surface = font.render(str(self.passengers), True, (255, 255, 255))
-        text_rect = text_surface.get_rect(center=(self.x, self.y - 15))
-        screen.blit(text_surface, text_rect)
+    def draw(self, surface):
+        pygame.draw.rect(surface, RED, self.bounds)
