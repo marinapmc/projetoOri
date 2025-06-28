@@ -1,4 +1,5 @@
 # quadtree.py
+
 from config import WIDTH, HEIGHT
 
 class Rect:
@@ -7,30 +8,33 @@ class Rect:
 
     def contains(self, obj):
         bx, by, bw, bh = obj.bounds
-        return (bx >= self.x and by >= self.y
-                and bx + bw <= self.x + self.w
-                and by + bh <= self.y + self.h)
+        return (
+            bx   >= self.x and by   >= self.y and
+            bx+bw <= self.x+self.w and by+bh <= self.y+self.h
+        )
 
     def intersects(self, other):
-        return not (other.x > self.x + self.w or
-                    other.x + other.w < self.x or
-                    other.y > self.y + self.h or
-                    other.y + other.h < self.y)
+        return not (
+            other.x      > self.x + self.w or
+            other.x+other.w < self.x     or
+            other.y      > self.y + self.h or
+            other.y+other.h < self.y
+        )
 
 class QuadTree:
     def __init__(self, boundary: Rect, capacity: int = 4):
         self.boundary = boundary
         self.capacity = capacity
-        self.objects = []
-        self.divided = False
+        self.objects  = []
+        self.divided  = False
 
     def subdivide(self):
-        x, y, w, h = self.boundary.x, self.boundary.y, self.boundary.w, self.boundary.h
-        hw, hh = w / 2, h / 2
-        self.northeast = QuadTree(Rect(x + hw, y, hw, hh), self.capacity)
-        self.northwest = QuadTree(Rect(x, y, hw, hh), self.capacity)
-        self.southeast = QuadTree(Rect(x + hw, y + hh, hw, hh), self.capacity)
-        self.southwest = QuadTree(Rect(x, y + hh, hw, hh), self.capacity)
+        x,y,w,h = self.boundary.x, self.boundary.y, self.boundary.w, self.boundary.h
+        hw, hh = w/2, h/2
+        self.northeast = QuadTree(Rect(x+hw, y,   hw, hh), self.capacity)
+        self.northwest = QuadTree(Rect(x,    y,   hw, hh), self.capacity)
+        self.southeast = QuadTree(Rect(x+hw, y+hh, hw, hh), self.capacity)
+        self.southwest = QuadTree(Rect(x,    y+hh, hw, hh), self.capacity)
         self.divided = True
 
     def insert(self, obj):
@@ -54,8 +58,7 @@ class QuadTree:
         if not self.boundary.intersects(range_rect):
             return found
         for obj in self.objects:
-            obj_rect = Rect(*obj.bounds)
-            if range_rect.intersects(obj_rect):
+            if range_rect.intersects(Rect(*obj.bounds)):
                 found.append(obj)
         if self.divided:
             self.northeast.query(range_rect, found)

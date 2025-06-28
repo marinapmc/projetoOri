@@ -1,6 +1,6 @@
 # entities.py
 import pygame
-from config import BUILDING_TYPES, MAX_BUILDING_RANGE, GREEN, RED
+from config import BUILDING_TYPES, GREEN, RED
 
 class Building:
     def __init__(self, btype, slot_rect, money_ref):
@@ -33,10 +33,17 @@ class Building:
         return dx*dx + dy*dy <= self.range*self.range
 
     def draw(self, surface):
+        bx, by, bw, bh = self.bounds
+
+        cx = bx + bw // 2
+        cy = by + bh // 2
+        radius = self.range 
+
         pygame.draw.rect(surface, GREEN, self.bounds)
+        pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
 
 class Bus:
-    def __init__(self, path, speed=100):
+    def __init__(self, path, speed=80):
         self.path = path
         self.speed = speed
         self.current = 0
@@ -64,5 +71,13 @@ class Bus:
         else:
             self.finished = True
 
-    def draw(self, surface):
+    def draw(self, surface, font=None):
         pygame.draw.rect(surface, RED, self.bounds)
+
+        passengers = max(0, int(self.passengers))
+        text_surf = font.render(str(passengers), True, (0, 0, 0))
+
+        tx = self.bounds[0] + self.bounds[2] // 2 - text_surf.get_width() // 2
+        ty = self.bounds[1] - text_surf.get_height() - 2 
+
+        surface.blit(text_surf, (tx, ty))
