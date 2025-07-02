@@ -14,6 +14,8 @@ pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+background = pygame.image.load("assets/background.png").convert()
+
 pygame.display.set_caption(TITLE)
 pygame.font.init()
 
@@ -138,8 +140,8 @@ def main():
                 if b.can_attack(bus):
                     bus.passengers -= b.damage * dt
 
-        # Desenha os elementos na tela
-        screen.fill(GRAY)
+        # Desenha o background
+        screen.blit(background, (0, 0)) 
 
         # Desenha slots
         for i, slot in enumerate(slots):

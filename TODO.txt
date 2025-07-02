@@ -1,0 +1,19 @@
+Assets:
+- HUD:
+    + Fonte;
+    + Ícones (Moeda, Relógio, Coração);
+- Fundo:
+    + Grama;
+    + Ambientação;
+    + Ruas;
+    + Slots;
+- Ônibus:
+    + Em todas as diretações;
+- Prédios:
+    + AT (1 upgrade);
+    + Biblioteca (3 upgrades);
+    + Departamento (2 upgrades);
+- Pessoas:
+    + 6 pessos diferentes;
+
+Funcionalidades:
