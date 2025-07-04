@@ -64,6 +64,8 @@ def main():
         # Detecta hover em slots
         mx, my = pygame.mouse.get_pos()
 
+        print(f"Mouse position: {mx}, {my}")
+
         hovered_slot = None
 
         for i, slot in enumerate(slots):

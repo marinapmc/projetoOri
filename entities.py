@@ -43,7 +43,7 @@ class Building:
         pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
 
 class Bus:
-    def __init__(self, path, speed=80):
+    def __init__(self, path, speed=90):
         self.path = path
         self.speed = speed
         self.current = 0

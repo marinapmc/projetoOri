@@ -3,10 +3,7 @@ Assets:
     + Fonte;
     + Ícones (Moeda, Relógio, Coração);
 - Fundo:
-    + Grama;
     + Ambientação;
-    + Ruas;
-    + Slots;
 - Ônibus:
     + Em todas as diretações;
 - Prédios:
@@ -17,3 +14,10 @@ Assets:
     + 6 pessos diferentes;
 
 Funcionalidades:
+- Troca slot com hover;
+- Barra de vida;
+- Tempo;
+- Torres acatam só um onibus por vez;
+- Botão sair;
+- Botão pausa;
+- Botão começar;
