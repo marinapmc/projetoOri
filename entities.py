@@ -1,18 +1,25 @@
 # entities.py
+import math
 import pygame
-from config import BUILDING_TYPES, GREEN, RED
+from config import BUILDING_TYPES, BUS_PATH, GREEN, MAX_BUILDING_RANGE, RED
 
 class Building:
-    def __init__(self, btype, slot_rect, money_ref):
+    def __init__(self, btype, slot_rect, money_ref, image_dict):
         self.type = BUILDING_TYPES[btype]
-        self.level = 1
         self.bounds = slot_rect
+        self.range = min(self.type['range'], MAX_BUILDING_RANGE)
+        self.damage = self.type['damage']
+        self.fire_rate = self.type['fire_rate']
+        self.fire_timer = 0.0
+        self.level = 1
+        self.money = money_ref
+        self.image_dict = image_dict
         self.center = (slot_rect[0] + slot_rect[2] // 2,
                        slot_rect[1] + slot_rect[3] // 2)
-        self.range = self.type['range']
-        self.damage = self.type['damage']
         self.upgrade_cost = self.type['upgrade_cost']
-        self.money = money_ref
+
+    def update(self, dt):
+        self.fire_timer += dt
 
     def can_upgrade(self):
         return (self.level < self.type['max_level'] and
@@ -22,62 +29,96 @@ class Building:
         if self.can_upgrade():
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
+            self.range = self.type['range'] * self.level
 
-    def can_attack(self, bus):
-        bx, by, bw, bh = bus.bounds
-        cx, cy = self.center
-        px = max(bx, min(cx, bx + bw))
-        py = max(by, min(cy, by + bh))
-        dx = px - cx
-        dy = py - cy
-        return dx*dx + dy*dy <= self.range*self.range
+    
+    def try_attack(self, bus):
+        if self.fire_timer < self.fire_rate or bus.is_destroyed():
+            return False
+
+        sx, sy, sw, sh = self.bounds
+        cx, cy = sx + sw // 2, sy + sh // 2
+        bx, by = bus.get_position()
+
+        if math.hypot(bx - cx, by - cy) <= self.range:
+            bus.take_damage(self.damage)
+            self.fire_timer = 0
+            return True
+        
+        return False
 
     def draw(self, surface):
         bx, by, bw, bh = self.bounds
+        b_left = bx
+        b_bottom = by + bh
 
         cx = bx + bw // 2
         cy = by + bh // 2
         radius = self.range 
+        
+        img = self.image_dict.get(f"{self.type['name']}_{self.level}", None)
 
-        pygame.draw.rect(surface, GREEN, self.bounds)
+        if img:
+            img_w, img_h = img.get_size()
+
+            draw_x = b_left
+            draw_y = b_bottom - img_h
+
+            surface.blit(img, (draw_x, draw_y))
+        else:
+            pygame.draw.rect(surface, GREEN, self.bounds)
+            
         pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
 
 class Bus:
-    def __init__(self, path, speed=90):
-        self.path = path
+    def __init__(self, image, student_count=10, speed=40):
+        self.image = image
+        self.path = BUS_PATH
         self.speed = speed
-        self.current = 0
-        self.position = list(path[0])
-        self.bounds = (*self.position, 20, 20)
-        self.passengers = 10
-        self.finished = False
+        self.index = 0
+        self.x, self.y = self.path[0]
+        self.target = self.path[1]
+        self.student_count = student_count
+        self.destroyed = False
+        self.font = pygame.font.SysFont(None, 20)
 
     def update(self, dt):
-        if self.current < len(self.path) - 1:
-            sx, sy = self.path[self.current]
-            tx, ty = self.path[self.current + 1]
-            dx, dy = tx - sx, ty - sy
-            dist = (dx*dx + dy*dy)**0.5
-            if dist > 0:
-                ux, uy = dx/dist, dy/dist
-                self.position[0] += ux * self.speed * dt
-                self.position[1] += uy * self.speed * dt
-                self.bounds = (self.position[0], self.position[1], 20, 20)
-                if ((ux>0 and self.position[0]>=tx) or
-                    (ux<0 and self.position[0]<=tx) or
-                    (uy>0 and self.position[1]>=ty) or
-                    (uy<0 and self.position[1]<=ty)):
-                    self.current += 1
+        if self.destroyed:
+            return
+
+        tx, ty = self.target
+        dx = tx - self.x
+        dy = ty - self.y
+        distance = (dx**2 + dy**2) ** 0.5
+
+        if distance < 1:
+            self.index += 1
+            if self.index + 1 >= len(self.path):
+                self.destroyed = True  # Chegou ao fim
+                return
+            self.target = self.path[self.index + 1]
         else:
-            self.finished = True
+            norm = self.speed * dt / distance
+            self.x += dx * norm
+            self.y += dy * norm
 
-    def draw(self, surface, font=None):
-        pygame.draw.rect(surface, RED, self.bounds)
+    def draw(self, surface, font):
+        if not self.destroyed:
+            rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+            surface.blit(self.image, rect)
 
-        passengers = max(0, int(self.passengers))
-        text_surf = font.render(str(passengers), True, (0, 0, 0))
+            # Desenha o número de passageiros acima do ônibus
+            text = font.render(str(max(0, self.student_count)), True, (255, 255, 255))
+            text_rect = text.get_rect(center=(int(self.x), int(self.y) - rect.height // 2 - 10))
+            surface.blit(text, text_rect)
 
-        tx = self.bounds[0] + self.bounds[2] // 2 - text_surf.get_width() // 2
-        ty = self.bounds[1] - text_surf.get_height() - 2 
+    def get_position(self):
+        return self.x, self.y
 
-        surface.blit(text_surf, (tx, ty))
+    def take_damage(self, amount):
+        self.student_count -= amount
+        if self.student_count <= 0:
+            self.destroyed = True
+
+    def is_destroyed(self):
+        return self.destroyed
