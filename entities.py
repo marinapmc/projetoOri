@@ -30,6 +30,7 @@ class Building:
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
             self.range = self.type['range'] * self.level
+            self.damage = self.type['damage'] * self.level
 
     
     def try_attack(self, bus):
