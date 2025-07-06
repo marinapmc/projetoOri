@@ -155,7 +155,7 @@ def draw_game(screen, state):
         m = int((state["time_of_day"] - h) * 60)
         time_str = f"{h}:{m:02d}"
         txt = FONT_HUD.render(
-            f"Money: {int(state["money"]['amount'])} | Horário: {time_str} | Vida: {state["score"]['amount']}", True, BLACK
+            f"Money: {int(state['money']['amount'])} | Horário: {time_str} | Vida: {state['score']['amount']}", True, BLACK
         )
 
         screen.blit(txt, (10, 10))
