@@ -92,15 +92,18 @@ def update_game(dt, state):
     for bus in list(state["buses"]):
         bus.update(dt) # Atualiza a posição do ônibus
 
-        if bus.finished: # Se o ônibus chegou ao final
-            state["buses"].remove(bus) # Remove o ônibus da lista
-            
-            if bus.passengers > 0: # Se o ônibus tem passageiros
-                print("Chegou ao destino com passageiros!")
-                state["score"]['amount'] -= int(bus.passengers) # Perde um ponto por passageiro
-            else: # Se o ônibus chegou vazio
-                print("Chegou ao destino vazio!")
-                state["money"]['amount'] += 100  # Ganha 100 pontos por ônibus vazio
+        # Verifica se o ônibus chegou ao fim
+        for bus in list(state["buses"]):
+            if bus.is_destroyed():
+                state["buses"].remove(bus)
+
+                if bus.student_count > 0:
+                    print("Chegou ao destino com passageiros!")
+                    state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
+                else:
+                    print("Chegou ao destino vazio!")
+                    state["money"]['amount'] += 100  # Ganha dinheiro
+
     
     for building in state["buildings"].values():
         building.update(dt)
