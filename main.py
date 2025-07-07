@@ -44,10 +44,10 @@ building_images = {
 }
 
 bus_images = {
-    "bus_1": pygame.image.load("assets/BUS_1.png").convert_alpha(),
-    "bus_2": pygame.image.load("assets/BUS_2.png").convert_alpha(),
-    "bus_3": pygame.image.load("assets/BUS_3.png").convert_alpha(),
-    "bus_4": pygame.image.load("assets/BUS_4.png").convert_alpha(),
+    "BUS_1": pygame.image.load("assets/BUS_1.gif").convert_alpha(),
+    "BUS_2": pygame.image.load("assets/BUS_2.gif").convert_alpha(),
+    "BUS_3": pygame.image.load("assets/BUS_3.gif").convert_alpha(),
+    "BUS_4": pygame.image.load("assets/BUS_4.gif").convert_alpha(),
 }
 
 pygame.display.set_caption(TITLE)
@@ -83,7 +83,7 @@ def update_game(dt, state):
         if interval and state["spawn_timer"] >= interval:
             count = random.randint(min_p, max_p)
 
-            bus = Bus(image=bus_images["bus_1"], student_count=count)
+            bus = Bus(image_dict=bus_images, student_count=count)
             
             state["buses"].append(bus)
             state["spawn_timer"] = 0
@@ -92,15 +92,15 @@ def update_game(dt, state):
     for bus in list(state["buses"]):
         bus.update(dt) # Atualiza a posição do ônibus
 
-        # if bus.finished: # Se o ônibus chegou ao final
-        #     state["buses"].remove(bus) # Remove o ônibus da lista
+        if bus.finished: # Se o ônibus chegou ao final
+            state["buses"].remove(bus) # Remove o ônibus da lista
             
-        #     if bus.passengers > 0: # Se o ônibus tem passageiros
-        #         print("Chegou ao destino com passageiros!")
-        #         state["score"]['amount'] -= int(bus.passengers) # Perde um ponto por passageiro
-        #     else: # Se o ônibus chegou vazio
-        #         print("Chegou ao destino vazio!")
-        #         state["money"]['amount'] += 100  # Ganha 100 pontos por ônibus vazio
+            if bus.passengers > 0: # Se o ônibus tem passageiros
+                print("Chegou ao destino com passageiros!")
+                state["score"]['amount'] -= int(bus.passengers) # Perde um ponto por passageiro
+            else: # Se o ônibus chegou vazio
+                print("Chegou ao destino vazio!")
+                state["money"]['amount'] += 100  # Ganha 100 pontos por ônibus vazio
     
     for building in state["buildings"].values():
         building.update(dt)

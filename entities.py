@@ -77,8 +77,8 @@ class Building:
         pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
 
 class Bus:
-    def __init__(self, image, student_count=10, speed=40):
-        self.image = image
+    def __init__(self, image_dict, student_count=10, speed=40):
+        self.image_dict = image_dict
         self.path = BUS_PATH
         self.speed = speed
         self.index = 0
@@ -108,10 +108,38 @@ class Bus:
             self.x += dx * norm
             self.y += dy * norm
 
+    def get_direction(self):
+        if self.index + 1 < len(self.path):
+            tx, ty = self.path[self.index + 1]
+            dx = tx - self.x
+            dy = ty - self.y
+            return dx, dy
+        return 0, 0
+
     def draw(self, surface, font):
         if not self.destroyed:
-            rect = self.image.get_rect(center=(int(self.x), int(self.y)))
-            surface.blit(self.image, rect)
+            x, y = self.get_direction()
+
+            x, y = int(x), int(y)
+
+            image = "BUS_1"
+
+            print(f"Direction: {x}, {y}, Image: {image}")
+
+            if x == 0: # Vertical
+                if y > 0:
+                    image = "BUS_3"
+                elif y < 0:
+                    image = "BUS_1"
+
+            if y == 0: # Horizontal
+                if x > 0:
+                    image = "BUS_2"
+                elif x < 0:
+                    image = "BUS_4"
+
+            rect = self.image_dict[image].get_rect(center=(int(self.x), int(self.y)))
+            surface.blit(self.image_dict[image], rect)
 
             # Desenha o número de passageiros acima do ônibus
             text = font.render(str(max(0, self.student_count)), True, (255, 255, 255))
