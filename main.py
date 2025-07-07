@@ -128,8 +128,8 @@ def update_game(dt, state):
 
         for building in candidates:
             if building.try_attack(bus):
-                break  # apenas um prédio ataca por vez
-
+                break  # só sai do loop de prédios se ataque foi bem-sucedido
+            
 def draw_game(screen, state):
         # Desenha o background
         screen.blit(background, (0, 0)) 

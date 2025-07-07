@@ -34,7 +34,9 @@ class Building:
 
     
     def try_attack(self, bus):
-        if self.fire_timer < self.fire_rate or bus.is_destroyed():
+        if self.fire_timer < self.fire_rate:
+            return False
+        if bus.is_destroyed() or bus.student_count <= 0:
             return False
 
 
@@ -121,8 +123,7 @@ class Bus:
 
     def take_damage(self, amount):
         self.student_count -= amount
-        if self.student_count <= 0:
-            self.destroyed = True
+        self.student_count = max(0, self.student_count)  # evita ficar negativo
 
     def is_destroyed(self):
         return self.destroyed
