@@ -20,6 +20,8 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 background = pygame.image.load("assets/background.png").convert()
+icon_vida = pygame.image.load("assets/vida.png").convert_alpha()
+icon_dinheiro = pygame.image.load("assets/dinheiro.png").convert_alpha()
 
 building_images = {
     "AT4_1": pygame.image.load("assets/AT4_1.png").convert_alpha(),
@@ -42,6 +44,7 @@ building_images = {
     "BCO_4": pygame.image.load("assets/BCO_4.png").convert_alpha(),
 }
 
+
 button_images = {
     "play": pygame.image.load("assets/button_play.png").convert_alpha(),
     "restart": pygame.image.load("assets/button_restart.png").convert_alpha(),
@@ -51,9 +54,9 @@ button_images = {
 
 # Botões de controle do HUD
 buttons_ui = {
-    "play":    {"image": button_images["play"],    "rect": pygame.Rect(50, 580, 93, 34), "action": "play"},
-    "restart": {"image": button_images["restart"], "rect": pygame.Rect(160, 580, 93, 34), "action": "restart"},
-    "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(270, 580, 93, 34), "action": "quit"},
+    "play":    {"image": button_images["play"],    "rect": pygame.Rect(850, 510, 93, 34), "action": "play"},
+    "restart": {"image": button_images["restart"], "rect": pygame.Rect(850, 550, 93, 34), "action": "restart"},
+    "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(850, 590, 93, 34), "action": "quit"},
     "help":    {"image": button_images["help"],    "rect": pygame.Rect(930, 10, 34, 34),  "action": "help"},
 }
 
@@ -188,9 +191,12 @@ def create_button(text, x, y, w, h, font):
 
 def draw_button(screen, button):
     pygame.draw.rect(screen, (100, 100, 100), button["rect"])
-    screen.blit(button["image"], (100, 100))
-    #text_rect = button["surface"].get_rect(center=button["rect"].center)
-    #screen.blit(button["surface"], text_rect)
+    
+    if "image" in button:
+        screen.blit(button["image"], button["rect"])
+    elif "surface" in button:
+        text_rect = button["surface"].get_rect(center=button["rect"].center)
+        screen.blit(button["surface"], text_rect)
 
 def reset_game_state():
     return {
@@ -207,6 +213,7 @@ def reset_game_state():
 def main():
     # Variáveis da HUD    
     screen_state = STATE_GAME
+    paused = True
 
     # Botões do jogo
     buttons_menu = [
@@ -313,24 +320,25 @@ def main():
                 text = FONT_HUD.render(line, True, (255, 255, 255))
                 screen.blit(text, (50, 50 + i*40))
 
-            #draw_button(screen, button_help_back)
+            draw_button(screen, button_help_back)
 
         elif screen_state == STATE_GAME:
-            update_game(dt, game_state)  # Atualiza o estado do jogo
-            draw_game(screen, game_state) # Desenha o estado do jogo
-            draw_button(screen, buttons_ui["play"])
+            if not paused:
+                update_game(dt, game_state)  # Atualiza o estado do jogo
 
+            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
 
-            # Se o horário ultrapassar o fim do dia, encerra o jogo
+            for btn in buttons_ui.values():  # Desenha todos os botões corretamente
+                draw_button(screen, btn)
+
             if game_state["time_of_day"] >= TIME_END:
-                # TODO: Implementar lógica de fim de dia
                 print("Fim do dia!")
                 running = False
 
-            if game_state["score"]['amount'] <= 0: # Se perdeu todos os pontos
-                # TODO: Implementar lógica de fim de jogo
+            if game_state["score"]['amount'] <= 0:
                 print("Game Over! Você perdeu todos os pontos!")
                 running = False
+
 
         pygame.display.flip()
 
