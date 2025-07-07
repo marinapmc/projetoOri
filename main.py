@@ -44,10 +44,10 @@ building_images = {
 }
 
 bus_images = {
-    "bus_1": pygame.image.load("assets/BUS_1.png").convert_alpha(),
-    "bus_2": pygame.image.load("assets/BUS_2.png").convert_alpha(),
-    "bus_3": pygame.image.load("assets/BUS_3.png").convert_alpha(),
-    "bus_4": pygame.image.load("assets/BUS_4.png").convert_alpha(),
+    "BUS_1": pygame.image.load("assets/BUS_1.gif").convert_alpha(),
+    "BUS_2": pygame.image.load("assets/BUS_2.gif").convert_alpha(),
+    "BUS_3": pygame.image.load("assets/BUS_3.gif").convert_alpha(),
+    "BUS_4": pygame.image.load("assets/BUS_4.gif").convert_alpha(),
 }
 
 pygame.display.set_caption(TITLE)
@@ -83,7 +83,7 @@ def update_game(dt, state):
         if interval and state["spawn_timer"] >= interval:
             count = random.randint(min_p, max_p)
 
-            bus = Bus(image=bus_images["bus_1"], student_count=count)
+            bus = Bus(image_dict=bus_images, student_count=count)
             
             state["buses"].append(bus)
             state["spawn_timer"] = 0
@@ -218,7 +218,7 @@ def main():
         # Detecta hover em slots
         mx, my = pygame.mouse.get_pos()
 
-        print(f"Mouse position: {mx}, {my}")
+        # print(f"Mouse position: {mx}, {my}")
 
         # Eventos
         for e in pygame.event.get():
