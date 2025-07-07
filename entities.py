@@ -37,16 +37,19 @@ class Building:
         if self.fire_timer < self.fire_rate or bus.is_destroyed():
             return False
 
+
         sx, sy, sw, sh = self.bounds
         cx, cy = sx + sw // 2, sy + sh // 2
         bx, by = bus.get_position()
+
 
         if math.hypot(bx - cx, by - cy) <= self.range:
             bus.take_damage(self.damage)
             self.fire_timer = 0
             return True
-        
+       
         return False
+
 
     def draw(self, surface):
         bx, by, bw, bh = self.bounds

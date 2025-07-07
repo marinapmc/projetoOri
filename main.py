@@ -121,7 +121,10 @@ def update_game(dt, state):
 
         bx, by = bus.get_position()
 
-        candidates = qt.query(Rect(bx, by, 1, 1))
+        range_box = Rect(bx - MAX_BUILDING_RANGE, by - MAX_BUILDING_RANGE,
+                 MAX_BUILDING_RANGE * 2, MAX_BUILDING_RANGE * 2)
+        candidates = qt.query(range_box)
+
 
         for building in candidates:
             if building.try_attack(bus):
@@ -218,7 +221,7 @@ def main():
         # Detecta hover em slots
         mx, my = pygame.mouse.get_pos()
 
-        print(f"Mouse position: {mx}, {my}")
+        #print(f"Mouse position: {mx}, {my}")
 
         # Eventos
         for e in pygame.event.get():
