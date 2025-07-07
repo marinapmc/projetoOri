@@ -29,8 +29,8 @@ class Building:
         if self.can_upgrade():
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
-            self.range = self.type['range'] * self.level
-            self.damage = self.type['damage'] * self.level
+            self.range = self.type['range'] + 50
+            self.fire_rate = self.type['fire_rate'] * 2
 
     
     def try_attack(self, bus):

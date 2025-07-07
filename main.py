@@ -43,6 +43,12 @@ building_images = {
     "BCO_4": pygame.image.load("assets/BCO_4.png").convert_alpha(),
 }
 
+button_images = {
+    "play": pygame.image.load("assets/button_play.png").convert_alpha(),
+    "restart": pygame.image.load("assets/button_restart.png").convert_alpha(),
+    "quit": pygame.image.load("assets/button_quit.png").convert_alpha(),
+}
+
 bus_images = {
     "BUS_1": pygame.image.load("assets/BUS_1.gif").convert_alpha(),
     "BUS_2": pygame.image.load("assets/BUS_2.gif").convert_alpha(),

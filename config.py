@@ -14,13 +14,13 @@ RED = (255, 0, 0)
 
 # Slots fixos para construir prédios (x, y, largura, altura, tipo)
 BUILDING_SLOTS = [
-    (155, 360, 77, 54), # AT10
-    (310, 190, 77, 54), # AT4
-    (690, 230, 77, 54), # AT5
-    (830, 230, 77, 54), # AT7
-    (200, 540, 143, 60), # Departamento Física
-    (525, 190, 149, 60), # Departamento Materiais
-    (275, 390, 140, 70), # BCO
+    (155, 342, 77, 54), # AT10
+    (308, 172, 77, 54), # AT4
+    (692, 232, 77, 54), # AT5
+    (837, 213, 77, 54), # AT7
+    (195, 530, 143, 60), # Departamento Física
+    (495, 190, 149, 60), # Departamento Materiais
+    (265, 378, 140, 70), # BCO
 ]
 
 # Tipo de prédio correspondente a cada slot
@@ -74,7 +74,7 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 75,
         'range': 120,
-        'damage': 1.5,
+        'damage': 1.0,
         'fire_rate': 0.8,
     },
     'DEF': {
@@ -83,7 +83,7 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 75,
         'range': 120,
-        'damage': 1.5,
+        'damage': 1.0,
         'fire_rate': 0.8,  
     },
     'BCO': {
@@ -92,7 +92,7 @@ BUILDING_TYPES = {
         'base_cost': 150,
         'upgrade_cost': 100,
         'range': 140,
-        'damage': 2.0,
+        'damage': 1.0,
         'fire_rate': 0.6,
     },
 }
@@ -105,11 +105,19 @@ TIME_SPEED = (TIME_END - TIME_START) / TOTAL_DAY_SECONDS  # horas de jogo por se
 
 # Cronograma de spawn de ônibus: (hora início, hora fim, intervalo em segundos, min_passageiros, max_passageiros)
 BUS_SPAWN_SCHEDULE = [
-    (6, 8, 5, 3, 7), # manhã cedo: 3–7 passageiros
-    (8, 12, 2, 8, 12), # manhã: 8–12 passageiros
-    (12, 14, 1, 15, 25), # almoço: 15–25 passageiros
-    (14, 17, 2, 8, 12), # tarde: 8–12 passageiros
-    (17, 19, 4, 3, 7), # fim: 3–7 passageiros
+    (6, 7, 10, 10, 30),   
+    (7, 8, 8, 30, 60),   
+    (8, 9, 10, 10, 30),   
+    (9, 10, 6.0, 25, 55),  
+    (10, 11, 10, 10, 30), 
+    (11, 12, 6.0, 25, 55), 
+    (12, 13, 6.0, 25, 55), 
+    (13, 14, 6, 50, 75), 
+    (14, 15, 10, 10, 30), 
+    (15, 16, 4.0, 50, 75), 
+    (16, 17, 10, 10, 30), 
+    (17, 18, 6, 50, 75), 
+    (18, 19, 3.0, 70, 95), 
 ]
 
 # Caminho dos ônibus: lista de waypoints (x, y)
