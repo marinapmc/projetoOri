@@ -12,7 +12,6 @@ from quadtree import QuadTree, Rect
 from entities import Building, Bus
 
 # Estados do jogo
-STATE_MENU = "menu"
 STATE_GAME = "game"
 STATE_HELP = "help"
 
@@ -47,6 +46,15 @@ button_images = {
     "play": pygame.image.load("assets/button_play.png").convert_alpha(),
     "restart": pygame.image.load("assets/button_restart.png").convert_alpha(),
     "quit": pygame.image.load("assets/button_quit.png").convert_alpha(),
+    "help": pygame.image.load("assets/button_help.png").convert_alpha(),
+}
+
+# Botões de controle do HUD
+buttons_ui = {
+    "play":    {"image": button_images["play"],    "rect": pygame.Rect(50, 580, 93, 34), "action": "play"},
+    "restart": {"image": button_images["restart"], "rect": pygame.Rect(160, 580, 93, 34), "action": "restart"},
+    "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(270, 580, 93, 34), "action": "quit"},
+    "help":    {"image": button_images["help"],    "rect": pygame.Rect(930, 10, 34, 34),  "action": "help"},
 }
 
 bus_images = {
@@ -156,11 +164,11 @@ def draw_game(screen, state):
 
             screen.blit(txt, (tx, ty))
 
-        for b in state["buildings"].values():
-            b.draw(screen)
-            
         for bus in state["buses"]:
             bus.draw(screen, FONT_BUS)
+
+        for b in state["buildings"].values():
+            b.draw(screen)
 
         # HUD
         h = int(state["time_of_day"])
@@ -180,8 +188,9 @@ def create_button(text, x, y, w, h, font):
 
 def draw_button(screen, button):
     pygame.draw.rect(screen, (100, 100, 100), button["rect"])
-    text_rect = button["surface"].get_rect(center=button["rect"].center)
-    screen.blit(button["surface"], text_rect)
+    screen.blit(button["image"], (100, 100))
+    #text_rect = button["surface"].get_rect(center=button["rect"].center)
+    #screen.blit(button["surface"], text_rect)
 
 def reset_game_state():
     return {
@@ -197,7 +206,7 @@ def reset_game_state():
 
 def main():
     # Variáveis da HUD    
-    screen_state = STATE_MENU
+    screen_state = STATE_GAME
 
     # Botões do jogo
     buttons_menu = [
@@ -206,7 +215,6 @@ def main():
         create_button("Sair", WIDTH//2 - 75, 340, 150, 50, FONT_HUD)
     ]
     button_help_back = create_button("Voltar", WIDTH//2 - 75, HEIGHT - 80, 150, 50, FONT_HUD)
-    button_exit_to_menu = create_button("Sair", 800, 580, 150, 50, FONT_HUD)
 
     # Estado do jogo
     game_state = {
@@ -241,27 +249,30 @@ def main():
             # Se clicou com o botão esquerdo do mouse
             if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
 
-                # Se estiver no menu
-                if screen_state == STATE_MENU:
-                        if buttons_menu[0]["rect"].collidepoint((mx, my)):
-                            screen_state = STATE_GAME
-                            game_state = reset_game_state()  # Reseta o estado do jogo
-
-                        elif buttons_menu[1]["rect"].collidepoint((mx, my)):
-                            screen_state = STATE_HELP
-                            
-                        elif buttons_menu[2]["rect"].collidepoint((mx, my)):
-                            pygame.quit()
-                            sys.exit()
-
                 # Se estiver na tela de ajuda
-                elif screen_state == STATE_HELP:
+                if screen_state == STATE_HELP:
                     if button_help_back["rect"].collidepoint((mx, my)):
-                        screen_state = STATE_MENU
+                        screen_state = STATE_GAME
 
                 # Se estiver no jogo
                 elif screen_state == STATE_GAME:
                     hovered_slot = None
+
+                    # Checa cliques nos botões da interface
+                    for button in buttons_ui.values():
+                        if button["rect"].collidepoint((mx, my)):
+                            action = button["action"]
+                            if action == "play":
+                                paused = False
+                            elif action == "restart":
+                                game_state = reset_game_state()
+                                paused = True
+                            elif action == "quit":
+                                pygame.quit()
+                                sys.exit()
+                            elif action == "help":
+                                screen_state = STATE_HELP
+
 
                     for i, slot in enumerate(game_state["slots"]):
                         if slot.collidepoint(mx, my):
@@ -270,9 +281,6 @@ def main():
                             break
                     else:
                         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-                    if button_exit_to_menu["rect"].collidepoint((mx, my)):
-                        screen_state = STATE_MENU
 
                     if hovered_slot is not None:
                         idx = hovered_slot
@@ -293,15 +301,7 @@ def main():
                         else:
                             game_state["buildings"][idx].upgrade()
                
-        # Desenha tudo na tela
-        if screen_state == STATE_MENU:
-            title = FONT_HUD.render("Tower Defense na UFSCar", True, (255, 255, 255))
-            screen.blit(title, (WIDTH//2 - title.get_width()//2, 100))
-
-            for b in buttons_menu:
-                draw_button(screen, b)
-
-        elif screen_state == STATE_HELP:
+        if screen_state == STATE_HELP:
             help_lines = [
                 "Objetivo: impedir que os onibus cheguem ao final",
                 "Coloque torres nos slots do mapa",
@@ -313,11 +313,13 @@ def main():
                 text = FONT_HUD.render(line, True, (255, 255, 255))
                 screen.blit(text, (50, 50 + i*40))
 
-            draw_button(screen, button_help_back)
+            #draw_button(screen, button_help_back)
 
         elif screen_state == STATE_GAME:
             update_game(dt, game_state)  # Atualiza o estado do jogo
             draw_game(screen, game_state) # Desenha o estado do jogo
+            draw_button(screen, buttons_ui["play"])
+
 
             # Se o horário ultrapassar o fim do dia, encerra o jogo
             if game_state["time_of_day"] >= TIME_END:
@@ -329,8 +331,6 @@ def main():
                 # TODO: Implementar lógica de fim de jogo
                 print("Game Over! Você perdeu todos os pontos!")
                 running = False
-
-            draw_button(screen, button_exit_to_menu)
 
         pygame.display.flip()
 
