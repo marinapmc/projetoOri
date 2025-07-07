@@ -124,8 +124,6 @@ class Bus:
 
             image = "BUS_1"
 
-            print(f"Direction: {x}, {y}, Image: {image}")
-
             if x == 0: # Vertical
                 if y > 0:
                     image = "BUS_3"

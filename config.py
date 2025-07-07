@@ -26,7 +26,7 @@ BUILDING_SLOTS = [
 # Tipo de prédio correspondente a cada slot
 BUILDING_SLOT_TYPES = [
     'AT10', 'AT4', 'AT5', 'AT7',
-    'DEF', 'DEMA',
+    'DF', 'DEMA',
     'BCO'
 ]
 
@@ -38,7 +38,7 @@ BUILDING_TYPES = {
         'base_cost': 50,
         'upgrade_cost': 40,
         'range': 100,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 1.0,  # taxa de disparo em segundos
     },
     'AT5': {
@@ -47,7 +47,7 @@ BUILDING_TYPES = {
         'base_cost': 50,
         'upgrade_cost': 40,
         'range': 100,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 1.0,  
     },
     'AT7': {
@@ -56,7 +56,7 @@ BUILDING_TYPES = {
         'base_cost': 50,
         'upgrade_cost': 40,
         'range': 100,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 1.0, 
     },
     'AT10': {
@@ -65,7 +65,7 @@ BUILDING_TYPES = {
         'base_cost': 50,
         'upgrade_cost': 40,
         'range': 100,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 1.0,  
     },
     'DEMA': {
@@ -74,16 +74,16 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 75,
         'range': 120,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 0.8,
     },
-    'DEF': {
-        'name': 'DEF',
+    'DF': {
+        'name': 'DF',
         'max_level': 3,
         'base_cost': 100,
         'upgrade_cost': 75,
         'range': 120,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 0.8,  
     },
     'BCO': {
@@ -92,7 +92,7 @@ BUILDING_TYPES = {
         'base_cost': 150,
         'upgrade_cost': 100,
         'range': 140,
-        'damage': 1.0,
+        'damage': 1,
         'fire_rate': 0.6,
     },
 }
