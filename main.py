@@ -122,12 +122,12 @@ def update_game(dt, state):
         if bus.is_destroyed():
             state["buses"].remove(bus)
 
-            if bus.student_count > 0:
-                print("Chegou ao destino com passageiros!")
-                state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
-            else:
-                print("Chegou ao destino vazio!")
-                state["money"]['amount'] += 100  # Ganha dinheiro
+                if bus.student_count > 0:
+                    print("Chegou ao destino com passageiros!")
+                    state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
+                else:
+                    print("Chegou ao destino vazio!")
+                    state["money"]['amount'] += 50  # Ganha dinheiro
 
     
     for building in state["buildings"].values():
@@ -176,17 +176,25 @@ def draw_game(screen, state):
 
         # Desenha slots
         for i, slot in enumerate(state["slots"]):
-            color = GREEN # if i == hovered_slot else BLACK TODO: Implementar hover
+            color = GREEN  # Cor padrão para o slot (pode ser alterada dependendo do hover)
             
             pygame.draw.rect(screen, color, slot, 2)
 
+            # Exibir o preço de construção se o slot estiver vazio
+            if i not in state["buildings"]:
+                btype = BUILDING_SLOT_TYPES[i]
+                cost = BUILDING_TYPES[btype]['base_cost']
+                txt = FONT_SLOT.render(f"$ {cost}", True, BLACK)
+                tx = slot.x + slot.w // 2 - txt.get_width() // 2
+                ty = slot.y + slot.h // 2 - txt.get_height() // 2 + 15
+                screen.blit(txt, (tx, ty))
+
+            # Exibe o nome do tipo de construção no centro do slot (se necessário)
             txt = FONT_SLOT.render(BUILDING_SLOT_TYPES[i], True, BLACK)
-
-            tx = slot.x + slot.w//2 - txt.get_width()//2
-            ty = slot.y + slot.h//2 - txt.get_height()//2
-
+            tx = slot.x + slot.w // 2 - txt.get_width() // 2 
+            ty = slot.y + slot.h // 2 - txt.get_height() // 2 - 10
             screen.blit(txt, (tx, ty))
-
+            
         for bus in state["buses"]:
             bus.draw(screen, FONT_BUS)
 

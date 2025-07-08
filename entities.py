@@ -1,7 +1,10 @@
 # entities.py
 import math
 import pygame
-from config import BUILDING_TYPES, BUS_PATH, GREEN, MAX_BUILDING_RANGE, RED
+from config import BUILDING_TYPES, BUS_PATH, GREEN, MAX_BUILDING_RANGE, BLACK
+
+pygame.font.init()
+FONT_SLOT = pygame.font.SysFont(None, 18)
 
 class Building:
     def __init__(self, btype, slot_rect, money_ref, image_dict):
@@ -30,7 +33,7 @@ class Building:
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
             self.range = self.type['range'] + 50
-            self.fire_rate = self.type['fire_rate'] / 2
+            self.fire_rate = self.type['fire_rate'] * 4
 
     
     def try_attack(self, bus):
@@ -73,6 +76,13 @@ class Building:
             pygame.draw.rect(surface, GREEN, self.bounds)
             
         # pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
+
+        # Exibe o preço de upgrade perto do prédio
+        if self.level < self.type['max_level']:
+            txt = FONT_SLOT.render(f"Upgrade: {self.upgrade_cost}", True, BLACK)
+            tx = bx + bw // 2 - txt.get_width() // 2
+            ty = by + 57  # Coloca o texto um pouco acima do prédio
+            surface.blit(txt, (tx, ty))
 
 class Bus:
     def __init__(self, image_dict, student_count=10, speed=40):
