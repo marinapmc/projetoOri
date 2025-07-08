@@ -33,8 +33,7 @@ class Building:
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
             self.range = self.type['range'] + 50
-            self.fire_rate = self.type['fire_rate'] * 4
-
+            self.fire_rate = self.type['fire_rate'] // 2
     
     def try_attack(self, bus):
         if self.fire_timer < self.fire_rate:
