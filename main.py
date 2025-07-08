@@ -65,7 +65,7 @@ buttons_ui = {
     "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(850, 590, 93, 34), "action": "quit"},
     "back":    {"image": button_images["back"],    "rect": pygame.Rect(487, 510, 93, 34), "action": "back"},
     "help":    {"image": button_images["help"],    "rect": pygame.Rect(930, 10, 34, 34),  "action": "help"},
-    "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(900, 10, 34, 34),  "action": "pause"},
+    "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(890, 10, 34, 34),  "action": "pause"},
 }
 
 bus_images = {
