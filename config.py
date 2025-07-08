@@ -39,7 +39,7 @@ BUILDING_TYPES = {
         'upgrade_cost': 40,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0,  # taxa de disparo em segundos
+        'fire_rate': 0.6,  # taxa de disparo em segundos
     },
     'AT5': {
         'name': 'AT5',
@@ -48,7 +48,7 @@ BUILDING_TYPES = {
         'upgrade_cost': 40,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0,  
+        'fire_rate': 0.6,  
     },
     'AT7': {
         'name': 'AT7',
@@ -57,7 +57,7 @@ BUILDING_TYPES = {
         'upgrade_cost': 40,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0, 
+        'fire_rate': 0.6, 
     },
     'AT10': {
         'name': 'AT10',
@@ -66,7 +66,7 @@ BUILDING_TYPES = {
         'upgrade_cost': 40,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0,  
+        'fire_rate': 0.6,  
     },
     'DEMA': {
         'name': 'DEMA',

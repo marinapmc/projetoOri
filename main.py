@@ -9,7 +9,7 @@ from config import (
     BUS_SPAWN_SCHEDULE, TOTAL_DAY_SECONDS, MAX_BUILDING_RANGE, BUILDING_TYPES, GRAY, BLACK
 )
 from quadtree import QuadTree, Rect
-from entities import Building, Bus
+from entities import Building, Bus, StudentProjectile
 
 # Estados do jogo
 STATE_WAIT = "wait"
@@ -25,6 +25,7 @@ background = pygame.image.load("assets/BACKGROUND.png").convert()
 icon_vida = pygame.image.load("assets/LIFE.png").convert_alpha()
 icon_dinheiro = pygame.image.load("assets/MONEY.png").convert_alpha()
 
+# Carrega as imagens dos prédios
 building_images = {
     "AT4_1": pygame.image.load("assets/AT4_1.png").convert_alpha(),
     "AT4_2": pygame.image.load("assets/AT4_2.png").convert_alpha(),
@@ -46,7 +47,7 @@ building_images = {
     "BCO_4": pygame.image.load("assets/BCO_4.png").convert_alpha(),
 }
 
-
+# Carrega as imagens dos botões
 button_images = {
     "play": pygame.image.load("assets/BUTTON_PLAY.png").convert_alpha(),
     "restart": pygame.image.load("assets/BUTTON_RESTART.png").convert_alpha(),
@@ -63,11 +64,12 @@ buttons_ui = {
     "resume":  {"image": button_images["resume"],  "rect": pygame.Rect(850, 510, 93, 34), "action": "resume"},
     "restart": {"image": button_images["restart"], "rect": pygame.Rect(850, 550, 93, 34), "action": "restart"},
     "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(850, 590, 93, 34), "action": "quit"},
-    "back":    {"image": button_images["back"],    "rect": pygame.Rect(487, 510, 93, 34), "action": "back"},
-    "help":    {"image": button_images["help"],    "rect": pygame.Rect(930, 10, 34, 34),  "action": "help"},
-    "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(900, 10, 34, 34),  "action": "pause"},
+    "back":    {"image": button_images["back"],    "rect": pygame.Rect(460, 510, 93, 34), "action": "back"},
+    "help":    {"image": button_images["help"],    "rect": pygame.Rect(910, 30, 34, 34),  "action": "help"},
+    "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(860, 30, 34, 34),  "action": "pause"},
 }
 
+# Carrega as imagens dos ônibus
 bus_images = {
     "BUS_1": pygame.image.load("assets/BUS_1.gif").convert_alpha(),
     "BUS_2": pygame.image.load("assets/BUS_2.gif").convert_alpha(),
@@ -76,14 +78,15 @@ bus_images = {
 }
 
 pygame.display.set_caption(TITLE)
+
 pygame.font.init()
 
 clock = pygame.time.Clock()
 
 # Fontes
-FONT_HUD  = pygame.font.SysFont(None, 24)
-FONT_SLOT = pygame.font.SysFont(None, 18)
-FONT_BUS  = pygame.font.SysFont(None, 20)
+FONT_HUD  = pygame.font.Font("assets/VT323-Regular.ttf", 24)
+FONT_SLOT = pygame.font.Font("assets/PressStart2P-Regular.ttf", 9)
+FONT_BUS  = pygame.font.Font("assets/PressStart2P-Regular.ttf", 10)
 
 # Função para obter o intervalo de spawn de ônibus com base no horário
 # Retorna o intervalo em segundos ou None se não puder spawnar
@@ -113,33 +116,39 @@ def update_game(dt, state):
             state["buses"].append(bus)
             state["spawn_timer"] = 0
 
-    # Atualiza os ônibus
     for bus in list(state["buses"]):
         bus.update(dt) # Atualiza a posição do ônibus
 
-        # Verifica se o ônibus chegou ao fim
-        for bus in list(state["buses"]):
-            if bus.is_destroyed():
-                state["buses"].remove(bus)
+        if bus.is_destroyed():
+            state["buses"].remove(bus)
 
-                if bus.student_count > 0:
-                    print("Chegou ao destino com passageiros!")
-                    state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
-                else:
-                    print("Chegou ao destino vazio!")
-                    state["money"]['amount'] += 100  # Ganha dinheiro
+            if bus.student_count > 0:
+                print("Chegou ao destino com passageiros!")
+                state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
+            else:
+                print("Chegou ao destino vazio!")
+                state["money"]['amount'] += 100  # Ganha dinheiro
 
     
     for building in state["buildings"].values():
         building.update(dt)
 
+    # Atualiza os projéteis (partículas visuais dos estudantes)
+    for p in list(state["projectiles"]):
+        p.update(dt)
+
+        if p.finished:
+            state["projectiles"].remove(p)
+
     # Cria uma quadtree com os prédios
     qt = QuadTree(Rect(0, 0, WIDTH, HEIGHT))
+
     for building in state["buildings"].values():
         x, y, w, h = building.bounds
         cx = x + w // 2
         cy = y + h // 2
         r = building.range
+        
         qt.insert(building)
 
     # Para cada ônibus, verifica se há prédios dentro do alcance
@@ -153,9 +162,12 @@ def update_game(dt, state):
                  MAX_BUILDING_RANGE * 2, MAX_BUILDING_RANGE * 2)
         candidates = qt.query(range_box)
 
-
         for building in candidates:
             if building.try_attack(bus):
+                # Adiciona um projétil visual da remoção de estudante
+                projectile = StudentProjectile(bus.get_position(), building.center)
+                state["projectiles"].append(projectile)
+
                 break  # só sai do loop de prédios se ataque foi bem-sucedido
             
 def draw_game(screen, state):
@@ -181,6 +193,9 @@ def draw_game(screen, state):
         for b in state["buildings"].values():
             b.draw(screen)
 
+        for p in state["projectiles"]:
+            p.draw(screen)
+
         # HUD
         h = int(state["time_of_day"])
         m = int((state["time_of_day"] - h) * 60)
@@ -191,17 +206,22 @@ def draw_game(screen, state):
 
         screen.blit(txt, (10, 10))
 
-# Criar retângulos para os botões
-def create_button(text, x, y, w, h, font):
-    rect = pygame.Rect(x, y, w, h)
-    surface = font.render(text, True, (255, 255, 255))
-    return {"rect": rect, "text": text, "surface": surface}
-
 def draw_button(screen, button):
-    pygame.draw.rect(screen, (100, 100, 100), button["rect"])
+    # Cria uma surface do tamanho do botão com canal alpha
+    rect_surface = pygame.Surface(button["rect"].size, pygame.SRCALPHA)
 
+    # Cor com alpha (ex: preto transparente)
+    rect_color = (0, 0, 0, 0)
+    
+    # Desenha o retângulo transparente na surface auxiliar
+    pygame.draw.rect(rect_surface, rect_color, rect_surface.get_rect())
+
+    # Blita a surface com o fundo transparente na posição do botão
+    screen.blit(rect_surface, button["rect"].topleft)
+
+    # Centraliza a imagem do botão dentro do retângulo
     rect = button["image"].get_rect(center=button["rect"].center)
-    screen.blit(button["image"], button["rect"])
+    screen.blit(button["image"], rect)
 
 def reset_game_state():
     return {
@@ -210,6 +230,7 @@ def reset_game_state():
         "time_of_day": TIME_START,
         "buildings": {},
         "buses": [],
+        "projectiles": [],
         "qt": QuadTree(Rect(0, 0, WIDTH, HEIGHT)),
         "slots": [pygame.Rect(x, y, h, w) for x, y, h, w in BUILDING_SLOTS],
         "spawn_timer": 0
@@ -230,6 +251,7 @@ def main():
         "time_of_day": TIME_START,
         "buildings": {},
         "buses": [],
+        "projectiles": [],
         "qt": QuadTree(Rect(0, 0, WIDTH, HEIGHT)),
         "slots": [pygame.Rect(x, y, h, w) for x, y, h, w in BUILDING_SLOTS],
         "spawn_timer": 0

@@ -30,7 +30,7 @@ class Building:
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
             self.range = self.type['range'] + 50
-            self.fire_rate = self.type['fire_rate'] * 2
+            self.fire_rate = self.type['fire_rate'] / 2
 
     
     def try_attack(self, bus):
@@ -44,14 +44,12 @@ class Building:
         cx, cy = sx + sw // 2, sy + sh // 2
         bx, by = bus.get_position()
 
-
         if math.hypot(bx - cx, by - cy) <= self.range:
             bus.take_damage(self.damage)
             self.fire_timer = 0
             return True
        
         return False
-
 
     def draw(self, surface):
         bx, by, bw, bh = self.bounds
@@ -74,7 +72,7 @@ class Building:
         else:
             pygame.draw.rect(surface, GREEN, self.bounds)
             
-        pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
+        # pygame.draw.circle(surface, GREEN, (cx, cy), radius, width=1)
 
 class Bus:
     def __init__(self, image_dict, student_count=10, speed=40):
@@ -153,3 +151,30 @@ class Bus:
 
     def is_destroyed(self):
         return self.destroyed
+    
+class StudentProjectile:
+    def __init__(self, start_pos, end_pos, duration=0.8):
+        self.start_x, self.start_y = start_pos
+        self.end_x, self.end_y = end_pos
+        self.duration = duration
+        self.elapsed = 0
+        self.finished = False
+
+    def update(self, dt):
+        self.elapsed += dt
+        if self.elapsed >= self.duration:
+            self.finished = True
+
+    def draw(self, surface):
+        t = self.elapsed / self.duration
+        t = min(max(t, 0), 1)
+
+        # Interpolação linear
+        x = self.start_x + (self.end_x - self.start_x) * t
+        y = self.start_y + (self.end_y - self.start_y) * t
+
+        # Altura da parábola (ajuste o valor 100 se quiser mais/menos curva)
+        parabola_height = -20 * (4 * (t - 0.5)**2 - 1)
+        y += parabola_height
+
+        pygame.draw.rect(surface, RED, (x - 3, y - 3, 6, 6))  # quadradinho vermelho
