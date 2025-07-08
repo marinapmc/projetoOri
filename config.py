@@ -99,7 +99,7 @@ BUILDING_TYPES = {
 # Clock settings (em horas de jogo)
 TIME_START = 6.0            # início do dia (horas)
 TIME_END = 19.0             # fim do dia (horas)
-TOTAL_DAY_SECONDS = 0.5 * 60  # tempo real para um dia completo: 6 minutos (360s)
+TOTAL_DAY_SECONDS = 5 * 60  # tempo real para um dia completo: 6 minutos (360s)
 TIME_SPEED = (TIME_END - TIME_START) / TOTAL_DAY_SECONDS  # horas de jogo por segundo real
 
 # Cronograma de spawn de ônibus: (hora início, hora fim, intervalo em segundos, min_passageiros, max_passageiros)

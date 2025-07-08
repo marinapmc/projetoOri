@@ -84,7 +84,7 @@ class Building:
             surface.blit(txt, (tx, ty))
 
 class Bus:
-    def __init__(self, image_dict, student_count=10, speed=80):
+    def __init__(self, image_dict, student_count=10, speed=40):
         self.image_dict = image_dict
         self.path = BUS_PATH
         self.speed = speed
