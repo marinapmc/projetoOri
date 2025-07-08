@@ -122,12 +122,12 @@ def update_game(dt, state):
         if bus.is_destroyed():
             state["buses"].remove(bus)
 
-                if bus.student_count > 0:
-                    print("Chegou ao destino com passageiros!")
-                    state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
-                else:
-                    print("Chegou ao destino vazio!")
-                    state["money"]['amount'] += 50  # Ganha dinheiro
+            if bus.student_count > 0:
+                print("Chegou ao destino com passageiros!")
+                state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
+            else:
+                print("Chegou ao destino vazio!")
+                state["money"]['amount'] += 50  # Ganha dinheiro
 
     
     for building in state["buildings"].values():

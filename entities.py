@@ -1,7 +1,7 @@
 # entities.py
 import math
 import pygame
-from config import BUILDING_TYPES, BUS_PATH, GREEN, MAX_BUILDING_RANGE, BLACK
+from config import BUILDING_TYPES, BUS_PATH, GREEN, MAX_BUILDING_RANGE, BLACK, RED
 
 pygame.font.init()
 FONT_SLOT = pygame.font.SysFont(None, 18)
