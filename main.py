@@ -12,16 +12,18 @@ from quadtree import QuadTree, Rect
 from entities import Building, Bus
 
 # Estados do jogo
+STATE_WAIT = "wait"
 STATE_GAME = "game"
 STATE_HELP = "help"
+STATE_PAUSED = "paused"
 
 pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-background = pygame.image.load("assets/background.png").convert()
-icon_vida = pygame.image.load("assets/vida.png").convert_alpha()
-icon_dinheiro = pygame.image.load("assets/dinheiro.png").convert_alpha()
+background = pygame.image.load("assets/BACKGROUND.png").convert()
+icon_vida = pygame.image.load("assets/LIFE.png").convert_alpha()
+icon_dinheiro = pygame.image.load("assets/MONEY.png").convert_alpha()
 
 building_images = {
     "AT4_1": pygame.image.load("assets/AT4_1.png").convert_alpha(),
@@ -35,9 +37,9 @@ building_images = {
     "DEMA_1": pygame.image.load("assets/DEMA_1.png").convert_alpha(),
     "DEMA_2": pygame.image.load("assets/DEMA_2.png").convert_alpha(),
     "DEMA_3": pygame.image.load("assets/DEMA_3.png").convert_alpha(),
-    "DEF_1": pygame.image.load("assets/DEF_1.png").convert_alpha(),
-    "DEF_2": pygame.image.load("assets/DEF_2.png").convert_alpha(),
-    "DEF_3": pygame.image.load("assets/DEF_3.png").convert_alpha(),
+    "DF_1": pygame.image.load("assets/DF_1.png").convert_alpha(),
+    "DF_2": pygame.image.load("assets/DF_2.png").convert_alpha(),
+    "DF_3": pygame.image.load("assets/DF_3.png").convert_alpha(),
     "BCO_1": pygame.image.load("assets/BCO_1.png").convert_alpha(),
     "BCO_2": pygame.image.load("assets/BCO_2.png").convert_alpha(),
     "BCO_3": pygame.image.load("assets/BCO_3.png").convert_alpha(),
@@ -46,18 +48,21 @@ building_images = {
 
 
 button_images = {
-    "play": pygame.image.load("assets/button_play.png").convert_alpha(),
-    "restart": pygame.image.load("assets/button_restart.png").convert_alpha(),
-    "quit": pygame.image.load("assets/button_quit.png").convert_alpha(),
-    "help": pygame.image.load("assets/button_help.png").convert_alpha(),
-    "pause": pygame.image.load("assets/button_pause.png").convert_alpha(),
+    "play": pygame.image.load("assets/BUTTON_PLAY.png").convert_alpha(),
+    "restart": pygame.image.load("assets/BUTTON_RESTART.png").convert_alpha(),
+    "quit": pygame.image.load("assets/BUTTON_QUIT.png").convert_alpha(),
+    "help": pygame.image.load("assets/BUTTON_HELP.png").convert_alpha(),
+    "back": pygame.image.load("assets/BUTTON_BACK.png").convert_alpha(),
+    "resume": pygame.image.load("assets/BUTTON_RESUME.png").convert_alpha(),
 }
 
 # Botões de controle do HUD
 buttons_ui = {
     "play":    {"image": button_images["play"],    "rect": pygame.Rect(850, 510, 93, 34), "action": "play"},
+    "resume":  {"image": button_images["resume"],  "rect": pygame.Rect(850, 510, 93, 34), "action": "resume"},
     "restart": {"image": button_images["restart"], "rect": pygame.Rect(850, 550, 93, 34), "action": "restart"},
     "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(850, 590, 93, 34), "action": "quit"},
+    "back":    {"image": button_images["back"],    "rect": pygame.Rect(487, 510, 93, 34), "action": "back"},
     "help":    {"image": button_images["help"],    "rect": pygame.Rect(930, 10, 34, 34),  "action": "help"},
     "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(900, 10, 34, 34),  "action": "pause"},
 }
@@ -193,12 +198,9 @@ def create_button(text, x, y, w, h, font):
 
 def draw_button(screen, button):
     pygame.draw.rect(screen, (100, 100, 100), button["rect"])
-    
-    if "image" in button:
-        screen.blit(button["image"], button["rect"])
-    elif "surface" in button:
-        text_rect = button["surface"].get_rect(center=button["rect"].center)
-        screen.blit(button["surface"], text_rect)
+
+    rect = button["image"].get_rect(center=button["rect"].center)
+    screen.blit(button["image"], button["rect"])
 
 def reset_game_state():
     return {
@@ -214,16 +216,7 @@ def reset_game_state():
 
 def main():
     # Variáveis da HUD    
-    screen_state = STATE_GAME
-    paused = True
-
-    # Botões do jogo
-    buttons_menu = [
-        create_button("Jogar", WIDTH//2 - 75, 200, 150, 50, FONT_HUD),
-        create_button("Ajuda", WIDTH//2 - 75, 270, 150, 50, FONT_HUD),
-        create_button("Sair", WIDTH//2 - 75, 340, 150, 50, FONT_HUD)
-    ]
-    button_help_back = create_button("Voltar", WIDTH//2 - 75, HEIGHT - 80, 150, 50, FONT_HUD)
+    screen_state = STATE_WAIT
 
     # Estado do jogo
     game_state = {
@@ -260,28 +253,43 @@ def main():
 
                 # Se estiver na tela de ajuda
                 if screen_state == STATE_HELP:
-                    if button_help_back["rect"].collidepoint((mx, my)):
+                    if buttons_ui["back"]["rect"].collidepoint((mx, my)):
+                        if game_state["time_of_day"] > TIME_START:
+                            screen_state = STATE_PAUSED
+                        else:
+                            screen_state = STATE_WAIT
+                if screen_state == STATE_WAIT:
+                    if buttons_ui["play"]["rect"].collidepoint((mx, my)):
                         screen_state = STATE_GAME
+
+                    elif buttons_ui["restart"]["rect"].collidepoint((mx, my)):
+                        game_state = reset_game_state()
+                        screen_state = STATE_WAIT
+
+                    elif buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                        running = False
+
+                    elif buttons_ui["help"]["rect"].collidepoint((mx, my)):
+                        screen_state = STATE_HELP
 
                 # Se estiver no jogo
                 elif screen_state == STATE_GAME:
+
+                    if buttons_ui["play"]["rect"].collidepoint((mx, my)):
+                        screen_state = STATE_GAME
+
+                    elif buttons_ui["restart"]["rect"].collidepoint((mx, my)):
+                        game_state = reset_game_state()
+                        screen_state = STATE_WAIT
+
+                    elif buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                        running = False
+
+                    elif buttons_ui["help"]["rect"].collidepoint((mx, my)):
+                        screen_state = STATE_HELP
+
+                    # Se estiver pausado, não faz nada
                     hovered_slot = None
-
-                    # Checa cliques nos botões da interface
-                    for button in buttons_ui.values():
-                        if button["rect"].collidepoint((mx, my)):
-                            action = button["action"]
-                            if action == "play":
-                                paused = False
-                            elif action == "restart":
-                                game_state = reset_game_state()
-                                paused = True
-                            elif action == "quit":
-                                pygame.quit()
-                                sys.exit()
-                            elif action == "help":
-                                screen_state = STATE_HELP
-
 
                     for i, slot in enumerate(game_state["slots"]):
                         if slot.collidepoint(mx, my):
@@ -310,6 +318,24 @@ def main():
                         else:
                             game_state["buildings"][idx].upgrade()
                
+        if screen_state == STATE_PAUSED:
+            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+
+            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
+            draw_button(screen, buttons_ui["resume"])  # Desenha o botão de jogar
+            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+        if screen_state == STATE_WAIT:
+            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+
+            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
+            draw_button(screen, buttons_ui["play"])  # Desenha o botão de jogar
+            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+            if game_state["time_of_day"] > TIME_START:
+                draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+
         if screen_state == STATE_HELP:
             help_lines = [
                 "Objetivo: impedir que os onibus cheguem ao final",
@@ -322,16 +348,16 @@ def main():
                 text = FONT_HUD.render(line, True, (255, 255, 255))
                 screen.blit(text, (50, 50 + i*40))
 
-            draw_button(screen, button_help_back)
+            draw_button(screen, buttons_ui["back"])  # Desenha o botão de voltar
 
         elif screen_state == STATE_GAME:
-            if not paused:
-                update_game(dt, game_state)  # Atualiza o estado do jogo
-
+            update_game(dt, game_state)  # Atualiza o estado do jogo
             draw_game(screen, game_state)  # Sempre desenha o estado do jogo
 
-            for btn in buttons_ui.values():  # Desenha todos os botões corretamente
-                draw_button(screen, btn)
+            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
+            draw_button(screen, buttons_ui["play"])  # Desenha o botão de jogar
+            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
 
             if game_state["time_of_day"] >= TIME_END:
                 print("Fim do dia!")
