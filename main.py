@@ -4,9 +4,8 @@ import pygame
 import random
 
 from config import (
-    BUILDING_SLOT_TYPES, GREEN, WIDTH, HEIGHT, FPS, TITLE, BUILDING_SLOTS, STARTING_MONEY,
-    BUS_PATH, TIME_START, TIME_END, TIME_SPEED,
-    BUS_SPAWN_SCHEDULE, TOTAL_DAY_SECONDS, MAX_BUILDING_RANGE, BUILDING_TYPES, GRAY, BLACK
+    BUILDING_SLOT_TYPES, GREEN, WIDTH, HEIGHT, FPS, TITLE, STARTING_MONEY, TIME_START, TIME_END, TIME_SPEED,
+    BUS_SPAWN_SCHEDULE, MAX_BUILDING_RANGE, BUILDING_TYPES, GRAY, BLACK, WHITE
 )
 from quadtree import QuadTree, Rect
 from entities import Building, Bus, StudentProjectile
@@ -16,14 +15,21 @@ STATE_WAIT = "wait"
 STATE_GAME = "game"
 STATE_HELP = "help"
 STATE_PAUSE = "pause"
+STATE_WIN = "win"
+STATE_DEFEAT = "defeat"
 
 pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 background = pygame.image.load("assets/BACKGROUND.png").convert()
-icon_vida = pygame.image.load("assets/LIFE.png").convert_alpha()
-icon_dinheiro = pygame.image.load("assets/MONEY.png").convert_alpha()
+
+icon_life = pygame.image.load("assets/ICON_LIFE.png").convert_alpha()
+icon_money = pygame.image.load("assets/ICON_MONEY.png").convert_alpha()
+icon_clock = pygame.image.load("assets/ICON_CLOCK.png").convert_alpha()
+
+bar_outline = pygame.image.load("assets/BAR_OUTLINE.png").convert_alpha()
+bar_fill = pygame.image.load("assets/BAR_FILL.png").convert_alpha()
 
 # Carrega as imagens dos prédios
 building_images = {
@@ -77,6 +83,17 @@ bus_images = {
     "BUS_4": pygame.image.load("assets/BUS_4.gif").convert_alpha(),
 }
 
+# Slots para construir prédios (x, y, largura, altura)
+BUILDING_SLOTS = [
+    (155, 345, 77, 50), # AT10
+    (308, 175, 77, 50), # AT4
+    (695, 235, 77, 50), # AT5
+    (837, 215, 77, 50), # AT7
+    (200, 535, 143, 50), # Departamento Física
+    (495, 190, 149, 50), # Departamento Materiais
+    (265, 390, 140, 50), # BCO
+]
+
 pygame.display.set_caption(TITLE)
 
 pygame.font.init()
@@ -84,9 +101,9 @@ pygame.font.init()
 clock = pygame.time.Clock()
 
 # Fontes
-FONT_HUD  = pygame.font.Font("assets/VT323-Regular.ttf", 24)
-FONT_SLOT = pygame.font.Font("assets/PressStart2P-Regular.ttf", 9)
-FONT_BUS  = pygame.font.Font("assets/PressStart2P-Regular.ttf", 10)
+FONT_HUD  = pygame.font.Font("assets/PressStart2P-Regular.ttf", 16)
+FONT_SLOT = pygame.font.Font("assets/PressStart2P-Regular.ttf", 10)
+FONT_BUS  = pygame.font.Font("assets/PressStart2P-Regular.ttf", 12)
 
 # Função para obter o intervalo de spawn de ônibus com base no horário
 # Retorna o intervalo em segundos ou None se não puder spawnar
@@ -123,10 +140,8 @@ def update_game(dt, state):
             state["buses"].remove(bus)
 
             if bus.student_count > 0:
-                print("Chegou ao destino com passageiros!")
-                state["score"]['amount'] -= int(bus.student_count)  # Perde pontos
+                state["score"]['amount'] = max(0, state["score"]['amount'] - int(bus.student_count))  # Perde pontos
             else:
-                print("Chegou ao destino vazio!")
                 state["money"]['amount'] += 50  # Ganha dinheiro
 
     
@@ -176,24 +191,30 @@ def draw_game(screen, state):
 
         # Desenha slots
         for i, slot in enumerate(state["slots"]):
-            color = GREEN  # Cor padrão para o slot (pode ser alterada dependendo do hover)
-            
-            pygame.draw.rect(screen, color, slot, 2)
 
-            # Exibir o preço de construção se o slot estiver vazio
+            # Se o slot não tiver um prédio construído
             if i not in state["buildings"]:
+                # Desenha o slot com uma borda verde
+                pygame.draw.rect(screen, GREEN, slot, 2)
+
                 btype = BUILDING_SLOT_TYPES[i]
                 cost = BUILDING_TYPES[btype]['base_cost']
-                txt = FONT_SLOT.render(f"$ {cost}", True, BLACK)
+
+                # Desenha o texto de custo do prédio
+                txt = FONT_SLOT.render(f"${cost}", True, GREEN)
+
                 tx = slot.x + slot.w // 2 - txt.get_width() // 2
-                ty = slot.y + slot.h // 2 - txt.get_height() // 2 + 15
+                ty = slot.y + slot.h // 2 - txt.get_height() // 2 + 10
+
                 screen.blit(txt, (tx, ty))
 
-            # Exibe o nome do tipo de construção no centro do slot (se necessário)
-            txt = FONT_SLOT.render(BUILDING_SLOT_TYPES[i], True, BLACK)
-            tx = slot.x + slot.w // 2 - txt.get_width() // 2 
-            ty = slot.y + slot.h // 2 - txt.get_height() // 2 - 10
-            screen.blit(txt, (tx, ty))
+                # Desenha o texto do nome do prédio
+                txt = FONT_SLOT.render(BUILDING_SLOT_TYPES[i], True, GREEN)
+
+                tx = slot.x + slot.w // 2 - txt.get_width() // 2
+                ty = slot.y + slot.h // 2 - txt.get_height() // 2 - 10
+
+                screen.blit(txt, (tx, ty))
             
         for bus in state["buses"]:
             bus.draw(screen, FONT_BUS)
@@ -203,16 +224,6 @@ def draw_game(screen, state):
 
         for p in state["projectiles"]:
             p.draw(screen)
-
-        # HUD
-        h = int(state["time_of_day"])
-        m = int((state["time_of_day"] - h) * 60)
-        time_str = f"{h}:{m:02d}"
-        txt = FONT_HUD.render(
-            f"Money: {int(state['money']['amount'])} | Horário: {time_str} | Vida: {state['score']['amount']}", True, BLACK
-        )
-
-        screen.blit(txt, (10, 10))
 
 def draw_button(screen, button):
     # Cria uma surface do tamanho do botão com canal alpha
@@ -231,6 +242,76 @@ def draw_button(screen, button):
     rect = button["image"].get_rect(center=button["rect"].center)
     screen.blit(button["image"], rect)
 
+# Função para desenhar a barra de vida
+def draw_health_bar(screen, state):
+    x, y = 635, 590
+    health = state["score"]['amount']
+
+    fill_ratio = max(0, min(1, health / 100))  # Garante entre 0 e 1
+    fill_width = int(200 * fill_ratio)
+
+    if fill_width > 0:
+        # Recorta a parte visível da imagem de preenchimento
+        bar_fill_cropped = bar_fill.subsurface((0, 0, fill_width, 32)).copy()
+
+        # Desenha um retângulo arredondado no formato desejado (máscara de borda esquerda)
+        mask = pygame.Surface((fill_width, 32), pygame.SRCALPHA)
+        pygame.draw.rect(mask, (255, 255, 255, 255), (0, 0, fill_width, 32))
+
+        # Aplica a máscara à imagem da barra (mantém só a parte arredondada)
+        bar_fill_cropped.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+        # Desenha o preenchimento
+        screen.blit(bar_fill_cropped, (x, y))
+
+    # Desenha o contorno da barra por cima
+    screen.blit(bar_outline, (x, y))
+
+    # Ícone de vida
+    icon_rect = icon_life.get_rect(topleft=(x - 45, y))
+    screen.blit(icon_life, icon_rect)
+
+# Função para desenhar o relógio na HUD
+def draw_clock(screen, state):
+    x, y = 80, 80
+
+    # Texto do horário
+    h = int(state["time_of_day"])
+    m = int((state["time_of_day"] - h) * 60)
+    time_str = f"{h}:{m:02d}"
+    time_text = FONT_HUD.render(f"{time_str}", True, WHITE)
+    time_rect = time_text.get_rect(topleft=(x + 50, y + 10))
+    screen.blit(time_text, time_rect)
+
+    # Ícone de relógio
+    clock_icon_rect = icon_clock.get_rect(topleft=(x, y))
+    screen.blit(icon_clock, clock_icon_rect)
+
+# Função para desenhar o dinheiro na HUD
+def draw_money(screen, state):
+    x, y = 590, 540
+
+    # Texto do dinheiro
+    money_text = FONT_HUD.render(f"{int(state['money']['amount'])}", True, WHITE)
+    money_rect = money_text.get_rect(topleft=(x + 50, y + 10))
+    screen.blit(money_text, money_rect)
+
+    # Ícone de dinheiro
+    money_icon_rect = icon_money.get_rect(topleft=(x, y))
+    screen.blit(icon_money, money_icon_rect)
+
+def draw_overlay(screen, text):
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 150))  # Fundo preto com transparência
+
+    # Desenha o texto centralizado
+    txt = FONT_HUD.render(text, True, WHITE)
+    txt_rect = txt.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    
+    screen.blit(overlay, (0, 0))  # Desenha o overlay
+    screen.blit(txt, txt_rect)     # Desenha o texto
+    pygame.display.flip()          # Atualiza a tela
+
 def reset_game_state():
     return {
         "money": {'amount': STARTING_MONEY},
@@ -247,6 +328,15 @@ def reset_game_state():
 def quit_game():
     pygame.quit()
     sys.exit()
+
+def end_of_day(game_state):
+    draw_game(screen, game_state)  # Desenha o estado do jogo
+
+    txt = FONT_HUD.render("Fim do dia! Pressione Enter para continuar...", True, BLACK)
+    screen.blit(txt, (WIDTH // 2 - txt.get_width() // 2,
+                        HEIGHT // 2 - txt.get_height() // 2))
+    
+    pygame.display.flip()
 
 def main():
     # Variáveis da HUD    
@@ -329,34 +419,41 @@ def main():
                     elif buttons_ui["quit"]["rect"].collidepoint((mx, my)):
                         quit_game()
 
-                    hovered_slot = None
+                    for hovered_slot, slot in enumerate(game_state["slots"]):
+                        if slot.collidepoint((mx, my)):
+                            idx = hovered_slot
+                            btype = BUILDING_SLOT_TYPES[idx]
 
-                    for i, slot in enumerate(game_state["slots"]):
-                        if slot.collidepoint(mx, my):
-                            hovered_slot = i
-                            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                            break
-                    else:
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                            # Verifica se o slot já tem um prédio construído
+                            if idx not in game_state["buildings"]:
+                                cost = BUILDING_TYPES[btype]['base_cost']
 
-                    if hovered_slot is not None:
-                        idx = hovered_slot
-                        btype = BUILDING_SLOT_TYPES[idx]
+                                # Se tem dinheiro suficiente, constrói o prédio
+                                if game_state["money"]['amount'] >= cost:
+                                    game_state["money"]['amount'] -= cost
 
-                        # Verifica se o slot já tem um prédio construído
-                        if idx not in game_state["buildings"]:
-                            cost = BUILDING_TYPES[btype]['base_cost']
+                                    b = Building(btype, game_state["slots"][idx], game_state["money"], building_images)
+                                    
+                                    game_state["buildings"][idx] = b
+                                    game_state["qt"].insert(b)
+                            else:
+                                game_state["buildings"][idx].upgrade()
 
-                            # Se tem dinheiro suficiente, constrói o prédio
-                            if game_state["money"]['amount'] >= cost:
-                                game_state["money"]['amount'] -= cost
+                elif screen_state == STATE_WIN:
+                    if buttons_ui["restart"]["rect"].collidepoint((mx, my)):
+                        game_state = reset_game_state()
+                        screen_state = STATE_WAIT
 
-                                b = Building(btype, game_state["slots"][idx], game_state["money"], building_images)
-                                
-                                game_state["buildings"][idx] = b
-                                game_state["qt"].insert(b)
-                        else:
-                            game_state["buildings"][idx].upgrade()
+                    elif buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                        quit_game()
+
+                elif screen_state == STATE_DEFEAT:
+                    if buttons_ui["restart"]["rect"].collidepoint((mx, my)):
+                        game_state = reset_game_state()
+                        screen_state = STATE_WAIT
+
+                    elif buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                        quit_game()
 
         if screen_state == STATE_HELP:
             help_lines = [
@@ -372,12 +469,25 @@ def main():
 
             draw_button(screen, buttons_ui["back"])  # Desenha o botão de voltar
 
+            if buttons_ui["back"]["rect"].collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
         elif screen_state == STATE_WAIT:
             draw_game(screen, game_state)  # Sempre desenha o estado do jogo
 
             draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
             draw_button(screen, buttons_ui["play"])  # Desenha o botão de jogar
             draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+            if buttons_ui["help"]["rect"].collidepoint((mx, my)) or \
+               buttons_ui["quit"]["rect"].collidepoint((mx, my)) or \
+               buttons_ui["play"]["rect"].collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                
 
         elif screen_state == STATE_PAUSE:
             draw_game(screen, game_state)  # Sempre desenha o estado do jogo
@@ -387,6 +497,19 @@ def main():
             draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
             draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
 
+            # Desenha o restante da HUD
+            draw_health_bar(screen, game_state)
+            draw_money(screen, game_state)
+            draw_clock(screen, game_state)
+
+            if buttons_ui["help"]["rect"].collidepoint((mx, my)) or \
+               buttons_ui["resume"]["rect"].collidepoint((mx, my)) or \
+               buttons_ui["restart"]["rect"].collidepoint((mx, my)) or \
+               buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
         elif screen_state == STATE_GAME:
             update_game(dt, game_state)  # Atualiza o estado do jogo
             draw_game(screen, game_state)  # Sempre desenha o estado do jogo
@@ -395,12 +518,53 @@ def main():
             draw_button(screen, buttons_ui["pause"])  # Desenha o botão de jogar
 
             if game_state["time_of_day"] >= TIME_END:
-                print("Fim do dia!")
-                running = False # TODO: Implementar reinício do jogo
+                screen_state = STATE_WIN
 
             if game_state["score"]['amount'] <= 0:
-                print("Game Over! Você perdeu todos os pontos!")
-                running = False # TODO: Implementar reinício do jogo
+                screen_state = STATE_DEFEAT
+
+            # Desenha o restante da HUD
+            draw_health_bar(screen, game_state)
+            draw_money(screen, game_state)
+            draw_clock(screen, game_state)
+
+        elif screen_state == STATE_WIN:
+            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+
+            # Desenha o restante da HUD
+            draw_health_bar(screen, game_state)
+            draw_money(screen, game_state)
+            draw_clock(screen, game_state)
+
+            draw_overlay(screen, "Você chegou ao fim do dia! Parabéns!")
+
+            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+            if buttons_ui["restart"]["rect"].collidepoint((mx, my)) or \
+                buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+        elif screen_state == STATE_DEFEAT:
+            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+
+            # Desenha o restante da HUD
+            draw_health_bar(screen, game_state)
+            draw_money(screen, game_state)
+            draw_clock(screen, game_state)
+
+            draw_overlay(screen, "Você perdeu! Tente novamente!")
+
+            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+            if buttons_ui["restart"]["rect"].collidepoint((mx, my)) or \
+               buttons_ui["quit"]["rect"].collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         pygame.display.flip()
 

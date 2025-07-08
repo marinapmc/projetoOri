@@ -1,14 +1,11 @@
 Assets:
 - HUD:
     + Nome do jogo;
-    + Escrever no lugar certo;
-    + Colocar os ícones;
-    + Barra de vída;
-    + Cor do quadrado;
+    + Cor da construção;
+    + Cor do upgrade;
+    + Tamanho do slot;
 
 Funcionalidades:
-- Barra de vida;
-- Tempo;
 - Mouse bugando;
-- Quando termina o dia;
-- Quando perde toda vida;
+- Botão piscando
+- Equilibrar o jogo;

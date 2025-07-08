@@ -9,19 +9,8 @@ TITLE = "Campus Defense"
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
-GREEN = (0, 255, 0)
+GREEN = (102, 106, 17)
 RED = (255, 0, 0)
-
-# Slots fixos para construir prédios (x, y, largura, altura, tipo)
-BUILDING_SLOTS = [
-    (155, 342, 77, 54), # AT10
-    (308, 172, 77, 54), # AT4
-    (692, 232, 77, 54), # AT5
-    (837, 213, 77, 54), # AT7
-    (195, 530, 143, 60), # Departamento Física
-    (495, 190, 149, 60), # Departamento Materiais
-    (265, 378, 140, 70), # BCO
-]
 
 # Tipo de prédio correspondente a cada slot
 BUILDING_SLOT_TYPES = [
@@ -38,8 +27,10 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 100,
         'range': 100,
+        'range_increase': 50,  # aumento do alcance por nível
         'damage': 1,
         'fire_rate': 0.8,  # taxa de disparo em segundos
+        'fire_rate_increase': 0.1,  # aumento da taxa de disparo por nível
     },
     'AT5': {
         'name': 'AT5',
@@ -47,8 +38,10 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 100,
         'range': 100,
+        'range_increase': 50,  # aumento do alcance por nível
         'damage': 1,
         'fire_rate': 0.8,  
+        'fire_rate_increase': 0.1, 
     },
     'AT7': {
         'name': 'AT7',
@@ -56,8 +49,10 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 100,
         'range': 100,
+        'range_increase': 50,  # aumento do alcance por nível
         'damage': 1,
         'fire_rate': 0.8, 
+        'fire_rate_increase': 0.1,
     },
     'AT10': {
         'name': 'AT10',
@@ -65,8 +60,10 @@ BUILDING_TYPES = {
         'base_cost': 100,
         'upgrade_cost': 100,
         'range': 100,
+        'range_increase': 50,  # aumento do alcance por nível
         'damage': 1,
         'fire_rate': 0.8,  
+        'fire_rate_increase': 0.1,
     },
     'DEMA': {
         'name': 'DEMA',
@@ -74,8 +71,10 @@ BUILDING_TYPES = {
         'base_cost': 200,
         'upgrade_cost': 250,
         'range': 120,
+        'range_increase': 50,  # aumento do alcance por nível
         'damage': 1,
         'fire_rate': 0.6,
+        'fire_rate_increase': 0.2,  # aumento da taxa de disparo por nível
     },
     'DF': {
         'name': 'DF',
@@ -100,7 +99,7 @@ BUILDING_TYPES = {
 # Clock settings (em horas de jogo)
 TIME_START = 6.0            # início do dia (horas)
 TIME_END = 19.0             # fim do dia (horas)
-TOTAL_DAY_SECONDS = 5 * 60  # tempo real para um dia completo: 6 minutos (360s)
+TOTAL_DAY_SECONDS = 0.5 * 60  # tempo real para um dia completo: 6 minutos (360s)
 TIME_SPEED = (TIME_END - TIME_START) / TOTAL_DAY_SECONDS  # horas de jogo por segundo real
 
 # Cronograma de spawn de ônibus: (hora início, hora fim, intervalo em segundos, min_passageiros, max_passageiros)
@@ -153,7 +152,7 @@ BUS_PATH = [
 ]
 
 # Recursos iniciais
-STARTING_MONEY = 300
+STARTING_MONEY = 10000
 
 # Alcance máximo de qualquer torre (para consulta na quadtree)
 MAX_BUILDING_RANGE = max(bt['range'] for bt in BUILDING_TYPES.values())

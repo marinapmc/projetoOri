@@ -80,11 +80,11 @@ class Building:
         if self.level < self.type['max_level']:
             txt = FONT_SLOT.render(f"Upgrade: {self.upgrade_cost}", True, BLACK)
             tx = bx + bw // 2 - txt.get_width() // 2
-            ty = by + 57  # Coloca o texto um pouco acima do prédio
+            ty = by + 57  # Coloca o texto um pouco abaxio do prédio
             surface.blit(txt, (tx, ty))
 
 class Bus:
-    def __init__(self, image_dict, student_count=10, speed=40):
+    def __init__(self, image_dict, student_count=10, speed=80):
         self.image_dict = image_dict
         self.path = BUS_PATH
         self.speed = speed
