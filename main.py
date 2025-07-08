@@ -50,6 +50,7 @@ button_images = {
     "restart": pygame.image.load("assets/button_restart.png").convert_alpha(),
     "quit": pygame.image.load("assets/button_quit.png").convert_alpha(),
     "help": pygame.image.load("assets/button_help.png").convert_alpha(),
+    "pause": pygame.image.load("assets/button_pause.png").convert_alpha(),
 }
 
 # Botões de controle do HUD
@@ -58,6 +59,7 @@ buttons_ui = {
     "restart": {"image": button_images["restart"], "rect": pygame.Rect(850, 550, 93, 34), "action": "restart"},
     "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(850, 590, 93, 34), "action": "quit"},
     "help":    {"image": button_images["help"],    "rect": pygame.Rect(930, 10, 34, 34),  "action": "help"},
+    "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(900, 10, 34, 34),  "action": "pause"},
 }
 
 bus_images = {
