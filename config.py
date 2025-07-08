@@ -35,65 +35,65 @@ BUILDING_TYPES = {
     'AT4': {
         'name': 'AT4',
         'max_level': 2,
-        'base_cost': 50,
-        'upgrade_cost': 40,
+        'base_cost': 100,
+        'upgrade_cost': 100,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0,  # taxa de disparo em segundos
+        'fire_rate': 0.8,  # taxa de disparo em segundos
     },
     'AT5': {
         'name': 'AT5',
         'max_level': 2,
-        'base_cost': 50,
-        'upgrade_cost': 40,
+        'base_cost': 100,
+        'upgrade_cost': 100,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0,  
+        'fire_rate': 0.8,  
     },
     'AT7': {
         'name': 'AT7',
         'max_level': 2,
-        'base_cost': 50,
-        'upgrade_cost': 40,
+        'base_cost': 100,
+        'upgrade_cost': 100,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0, 
+        'fire_rate': 0.8, 
     },
     'AT10': {
         'name': 'AT10',
         'max_level': 2,
-        'base_cost': 50,
-        'upgrade_cost': 40,
+        'base_cost': 100,
+        'upgrade_cost': 100,
         'range': 100,
         'damage': 1,
-        'fire_rate': 1.0,  
+        'fire_rate': 0.8,  
     },
     'DEMA': {
         'name': 'DEMA',
         'max_level': 3,
-        'base_cost': 100,
-        'upgrade_cost': 75,
+        'base_cost': 200,
+        'upgrade_cost': 250,
         'range': 120,
         'damage': 1,
-        'fire_rate': 0.8,
+        'fire_rate': 0.6,
     },
     'DF': {
         'name': 'DF',
         'max_level': 3,
-        'base_cost': 100,
-        'upgrade_cost': 75,
+        'base_cost': 200,
+        'upgrade_cost': 250,
         'range': 120,
         'damage': 1,
-        'fire_rate': 0.8,  
+        'fire_rate': 0.6,  
     },
     'BCO': {
         'name': 'BCO',
         'max_level': 4,
-        'base_cost': 150,
-        'upgrade_cost': 100,
+        'base_cost': 300,
+        'upgrade_cost': 300,
         'range': 140,
         'damage': 1,
-        'fire_rate': 0.6,
+        'fire_rate': 0.4,
     },
 }
 
@@ -105,19 +105,12 @@ TIME_SPEED = (TIME_END - TIME_START) / TOTAL_DAY_SECONDS  # horas de jogo por se
 
 # Cronograma de spawn de ônibus: (hora início, hora fim, intervalo em segundos, min_passageiros, max_passageiros)
 BUS_SPAWN_SCHEDULE = [
-    (6, 7, 10, 10, 30),   
-    (7, 8, 8, 30, 60),   
-    (8, 9, 10, 10, 30),   
-    (9, 10, 6.0, 25, 55),  
-    (10, 11, 10, 10, 30), 
-    (11, 12, 6.0, 25, 55), 
-    (12, 13, 6.0, 25, 55), 
-    (13, 14, 6, 50, 75), 
-    (14, 15, 10, 10, 30), 
-    (15, 16, 4.0, 50, 75), 
-    (16, 17, 10, 10, 30), 
-    (17, 18, 6, 50, 75), 
-    (18, 19, 3.0, 70, 95), 
+    (6, 8, 8, 10, 20),   
+    (8, 10, 10, 15, 30),    
+    (10, 12, 9, 30, 40), 
+    (12, 14, 11, 40, 60), 
+    (14, 16, 9, 30, 50), 
+    (16, 19, 8, 50, 70), 
 ]
 
 # Caminho dos ônibus: lista de waypoints (x, y)
@@ -160,7 +153,7 @@ BUS_PATH = [
 ]
 
 # Recursos iniciais
-STARTING_MONEY = 200
+STARTING_MONEY = 300
 
 # Alcance máximo de qualquer torre (para consulta na quadtree)
 MAX_BUILDING_RANGE = max(bt['range'] for bt in BUILDING_TYPES.values())
