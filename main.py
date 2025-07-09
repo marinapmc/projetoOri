@@ -16,13 +16,15 @@ STATE_GAME = "game"
 STATE_HELP = "help"
 STATE_PAUSE = "pause"
 STATE_WIN = "win"
-STATE_DEFEAT = "defeat"
+STATE_LOSE = "lose"
 
 pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 background = pygame.image.load("assets/BACKGROUND.png").convert()
+
+title = pygame.image.load("assets/NOME_JOGO.png").convert_alpha()
 
 icon_life = pygame.image.load("assets/ICON_LIFE.png").convert_alpha()
 icon_money = pygame.image.load("assets/ICON_MONEY.png").convert_alpha()
@@ -244,7 +246,7 @@ def draw_button(screen, button):
 
 # Função para desenhar a barra de vida
 def draw_health_bar(screen, state):
-    x, y = 635, 590
+    x, y = 690, 590
     health = state["score"]['amount']
 
     fill_ratio = max(0, min(1, health / 100))  # Garante entre 0 e 1
@@ -262,18 +264,18 @@ def draw_health_bar(screen, state):
         bar_fill_cropped.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         # Desenha o preenchimento
-        screen.blit(bar_fill_cropped, (x, y))
+        screen.blit(bar_fill_cropped, (x + 45, y))
 
     # Desenha o contorno da barra por cima
-    screen.blit(bar_outline, (x, y))
+    screen.blit(bar_outline, (x + 45, y))
 
     # Ícone de vida
-    icon_rect = icon_life.get_rect(topleft=(x - 45, y))
+    icon_rect = icon_life.get_rect(topleft=(x, y))
     screen.blit(icon_life, icon_rect)
 
 # Função para desenhar o relógio na HUD
 def draw_clock(screen, state):
-    x, y = 80, 80
+    x, y = 70, 35
 
     # Texto do horário
     h = int(state["time_of_day"])
@@ -289,7 +291,7 @@ def draw_clock(screen, state):
 
 # Função para desenhar o dinheiro na HUD
 def draw_money(screen, state):
-    x, y = 590, 540
+    x, y = 690, 540
 
     # Texto do dinheiro
     money_text = FONT_HUD.render(f"{int(state['money']['amount'])}", True, WHITE)
@@ -312,6 +314,11 @@ def draw_overlay(screen, text):
     screen.blit(txt, txt_rect)     # Desenha o texto
     pygame.display.flip()          # Atualiza a tela
 
+def draw_title(screen):
+    # Desenha o título do jogo no topo da tela
+    title_rect = title.get_rect(center=(WIDTH // 2, 50))
+    screen.blit(title, title_rect)
+
 def reset_game_state():
     return {
         "money": {'amount': STARTING_MONEY},
@@ -329,18 +336,11 @@ def quit_game():
     pygame.quit()
     sys.exit()
 
-def end_of_day(game_state):
-    draw_game(screen, game_state)  # Desenha o estado do jogo
-
-    txt = FONT_HUD.render("Fim do dia! Pressione Enter para continuar...", True, BLACK)
-    screen.blit(txt, (WIDTH // 2 - txt.get_width() // 2,
-                        HEIGHT // 2 - txt.get_height() // 2))
-    
-    pygame.display.flip()
-
+# Função principal do jogo
 def main():
     # Variáveis da HUD    
     screen_state = STATE_WAIT
+    last_screen_draw = None
 
     # Estado do jogo
     game_state = {
@@ -360,12 +360,8 @@ def main():
     while running:
         dt = clock.tick(FPS) / 1000 # Tempo delta em segundos
 
-        screen.fill((0, 0, 0))  # fundo preto por padrão
-
         # Detecta hover em slots
         mx, my = pygame.mouse.get_pos()
-
-        #print(f"Mouse position: {mx}, {my}")
 
         # Eventos
         for e in pygame.event.get():
@@ -447,7 +443,7 @@ def main():
                     elif buttons_ui["quit"]["rect"].collidepoint((mx, my)):
                         quit_game()
 
-                elif screen_state == STATE_DEFEAT:
+                elif screen_state == STATE_LOSE:
                     if buttons_ui["restart"]["rect"].collidepoint((mx, my)):
                         game_state = reset_game_state()
                         screen_state = STATE_WAIT
@@ -456,18 +452,25 @@ def main():
                         quit_game()
 
         if screen_state == STATE_HELP:
-            help_lines = [
-                "Objetivo: impedir que os onibus cheguem ao final",
-                "Coloque torres nos slots do mapa",
-                "Cada torre reduz o número de alunos nos ônibus",
-                "Você perde pontos com os alunos que passam",
-                "O dia acaba após certo tempo.",
-            ]
-            for i, line in enumerate(help_lines):
-                text = FONT_HUD.render(line, True, (255, 255, 255))
-                screen.blit(text, (50, 50 + i*40))
+            if last_screen_draw != screen_state:
+                screen.fill((0, 0, 0))
 
-            draw_button(screen, buttons_ui["back"])  # Desenha o botão de voltar
+                draw_title(screen)  # Desenha o título do jogo
+
+                help_lines = [
+                    "Objetivo: impedir que os onibus cheguem ao final",
+                    "Coloque torres nos slots do mapa",
+                    "Cada torre reduz o número de alunos nos ônibus",
+                    "Você perde pontos com os alunos que passam",
+                    "O dia acaba após certo tempo.",
+                ]
+                for i, line in enumerate(help_lines):
+                    text = FONT_HUD.render(line, True, (255, 255, 255))
+                    screen.blit(text, (50, 50 + i*40))
+
+                draw_button(screen, buttons_ui["back"])  # Desenha o botão de voltar
+
+                last_screen_draw = screen_state  # Armazena o último estado desenhado
 
             if buttons_ui["back"]["rect"].collidepoint((mx, my)):
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
@@ -475,11 +478,18 @@ def main():
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         elif screen_state == STATE_WAIT:
-            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+            if last_screen_draw != screen_state:
+                screen.fill((0, 0, 0))
 
-            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
-            draw_button(screen, buttons_ui["play"])  # Desenha o botão de jogar
-            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+                draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+
+                draw_title(screen)  # Desenha o título do jogo
+
+                draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
+                draw_button(screen, buttons_ui["play"])  # Desenha o botão de jogar
+                draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+                last_screen_draw = screen_state  # Armazena o último estado desenhado
 
             if buttons_ui["help"]["rect"].collidepoint((mx, my)) or \
                buttons_ui["quit"]["rect"].collidepoint((mx, my)) or \
@@ -488,19 +498,27 @@ def main():
             else:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 
-
         elif screen_state == STATE_PAUSE:
-            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+            if last_screen_draw != screen_state:
+                screen.fill((0, 0, 0))  # fundo preto por padrão
 
-            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
-            draw_button(screen, buttons_ui["resume"])  # Desenha o botão de jogar
-            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
-            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+                draw_game(screen, game_state)  # Sempre desenha o estado do jogo
 
-            # Desenha o restante da HUD
-            draw_health_bar(screen, game_state)
-            draw_money(screen, game_state)
-            draw_clock(screen, game_state)
+                draw_title(screen)  # Desenha o título do jogo
+
+                # Desenha o restante da HUD
+                draw_health_bar(screen, game_state)
+                draw_money(screen, game_state)
+                draw_clock(screen, game_state)
+
+                draw_overlay(screen, "Jogo pausado.")
+                
+                draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
+                draw_button(screen, buttons_ui["resume"])  # Desenha o botão de jogar
+                draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+                draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+                last_screen_draw = screen_state  # Armazena o último estado desenhado
 
             if buttons_ui["help"]["rect"].collidepoint((mx, my)) or \
                buttons_ui["resume"]["rect"].collidepoint((mx, my)) or \
@@ -510,36 +528,23 @@ def main():
             else:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        elif screen_state == STATE_GAME:
-            update_game(dt, game_state)  # Atualiza o estado do jogo
-            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
-
-            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
-            draw_button(screen, buttons_ui["pause"])  # Desenha o botão de jogar
-
-            if game_state["time_of_day"] >= TIME_END:
-                screen_state = STATE_WIN
-
-            if game_state["score"]['amount'] <= 0:
-                screen_state = STATE_DEFEAT
-
-            # Desenha o restante da HUD
-            draw_health_bar(screen, game_state)
-            draw_money(screen, game_state)
-            draw_clock(screen, game_state)
-
         elif screen_state == STATE_WIN:
-            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+            if last_screen_draw != screen_state:
+                screen.fill((0, 0, 0))
 
-            # Desenha o restante da HUD
-            draw_health_bar(screen, game_state)
-            draw_money(screen, game_state)
-            draw_clock(screen, game_state)
+                draw_game(screen, game_state)  # Sempre desenha o estado do jogo
 
-            draw_overlay(screen, "Você chegou ao fim do dia! Parabéns!")
+                # Desenha o restante da HUD
+                draw_health_bar(screen, game_state)
+                draw_money(screen, game_state)
+                draw_clock(screen, game_state)
 
-            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
-            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+                draw_overlay(screen, "Você chegou ao fim do dia! Parabéns!")
+
+                draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+                draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+                last_screen_draw = screen_state  # Armazena o último estado desenhado
 
             if buttons_ui["restart"]["rect"].collidepoint((mx, my)) or \
                 buttons_ui["quit"]["rect"].collidepoint((mx, my)):
@@ -547,24 +552,60 @@ def main():
             else:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        elif screen_state == STATE_DEFEAT:
-            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+        elif screen_state == STATE_LOSE:
+            if last_screen_draw != screen_state:
+                screen.fill((0, 0, 0))
 
-            # Desenha o restante da HUD
-            draw_health_bar(screen, game_state)
-            draw_money(screen, game_state)
-            draw_clock(screen, game_state)
+                draw_game(screen, game_state)  # Sempre desenha o estado do jogo
 
-            draw_overlay(screen, "Você perdeu! Tente novamente!")
+                # Desenha o restante da HUD
+                draw_health_bar(screen, game_state)
+                draw_money(screen, game_state)
+                draw_clock(screen, game_state)
 
-            draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
-            draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+                draw_overlay(screen, "Você perdeu! Tente novamente!")
+
+                draw_button(screen, buttons_ui["restart"]) # Desenha o botão de reiniciar
+                draw_button(screen, buttons_ui["quit"])  # Desenha o botão de sair
+
+                last_screen_draw = screen_state  # Armazena o último estado desenhado
 
             if buttons_ui["restart"]["rect"].collidepoint((mx, my)) or \
                buttons_ui["quit"]["rect"].collidepoint((mx, my)):
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             else:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+        elif screen_state == STATE_GAME:
+            screen.fill((0, 0, 0))
+
+            update_game(dt, game_state)  # Atualiza o estado do jogo
+            draw_game(screen, game_state)  # Sempre desenha o estado do jogo
+
+            draw_title(screen)  # Desenha o título do jogo
+
+            draw_button(screen, buttons_ui["help"])  # Desenha o botão de ajuda
+            draw_button(screen, buttons_ui["pause"])  # Desenha o botão de jogar
+        
+            # Desenha o restante da HUD
+            draw_health_bar(screen, game_state)
+            draw_money(screen, game_state)
+            draw_clock(screen, game_state)
+
+            for hovered_slot, slot in enumerate(game_state["slots"]):
+                if slot.collidepoint((mx, my)):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    break
+                else:
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+            last_screen_draw = screen_state  # Armazena o último estado desenhado
+
+            if game_state["time_of_day"] >= TIME_END:
+                screen_state = STATE_WIN
+
+            if game_state["score"]['amount'] <= 0:
+                screen_state = STATE_LOSE  
 
         pygame.display.flip()
 

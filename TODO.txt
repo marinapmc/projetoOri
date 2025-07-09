@@ -1,11 +1,5 @@
 Assets:
 - HUD:
-    + Nome do jogo;
     + Cor da construção;
     + Cor do upgrade;
     + Tamanho do slot;
-
-Funcionalidades:
-- Mouse bugando;
-- Botão piscando
-- Equilibrar o jogo;

@@ -33,7 +33,7 @@ class Building:
             self.money['amount'] -= self.upgrade_cost
             self.level += 1
             self.range = self.type['range'] + 50
-            self.fire_rate = self.type['fire_rate'] // 2
+            self.fire_rate = self.type['fire_rate'] - self.type['fire_rate_increase']
     
     def try_attack(self, bus):
         if self.fire_timer < self.fire_rate:
@@ -84,7 +84,7 @@ class Building:
             surface.blit(txt, (tx, ty))
 
 class Bus:
-    def __init__(self, image_dict, student_count=10, speed=40):
+    def __init__(self, image_dict, student_count=10, speed=50):
         self.image_dict = image_dict
         self.path = BUS_PATH
         self.speed = speed

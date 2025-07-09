@@ -84,6 +84,7 @@ BUILDING_TYPES = {
         'range': 120,
         'damage': 1,
         'fire_rate': 0.6,  
+        'fire_rate_increase': 0.2,  # aumento da taxa de disparo por nível
     },
     'BCO': {
         'name': 'BCO',
@@ -93,6 +94,7 @@ BUILDING_TYPES = {
         'range': 140,
         'damage': 1,
         'fire_rate': 0.4,
+        'fire_rate_increase': 0.1,  # aumento da taxa de disparo por nível
     },
 }
 
@@ -152,7 +154,7 @@ BUS_PATH = [
 ]
 
 # Recursos iniciais
-STARTING_MONEY = 10000
+STARTING_MONEY = 300
 
 # Alcance máximo de qualquer torre (para consulta na quadtree)
 MAX_BUILDING_RANGE = max(bt['range'] for bt in BUILDING_TYPES.values())
