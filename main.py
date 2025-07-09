@@ -72,7 +72,7 @@ buttons_ui = {
     "resume":  {"image": button_images["resume"],  "rect": pygame.Rect(850, 510, 93, 34), "action": "resume"},
     "restart": {"image": button_images["restart"], "rect": pygame.Rect(850, 550, 93, 34), "action": "restart"},
     "quit":    {"image": button_images["quit"],    "rect": pygame.Rect(850, 590, 93, 34), "action": "quit"},
-    "back":    {"image": button_images["back"],    "rect": pygame.Rect(460, 510, 93, 34), "action": "back"},
+    "back":    {"image": button_images["back"],    "rect": pygame.Rect(460, 550, 93, 34), "action": "back"},
     "help":    {"image": button_images["help"],    "rect": pygame.Rect(910, 30, 34, 34),  "action": "help"},
     "pause":   {"image": button_images["pause"],   "rect": pygame.Rect(860, 30, 34, 34),  "action": "pause"},
 }
@@ -458,15 +458,20 @@ def main():
                 draw_title(screen)  # Desenha o título do jogo
 
                 help_lines = [
-                    "Objetivo: impedir que os onibus cheguem ao final",
-                    "Coloque torres nos slots do mapa",
-                    "Cada torre reduz o número de alunos nos ônibus",
-                    "Você perde pontos com os alunos que passam",
-                    "O dia acaba após certo tempo.",
+                    "- Impeça que os ônibus cheguem ao destino",
+                    " com passageiros",
+                    "- Construa torres clicando nos slots e atualize-as para",
+                    " aumentar alcance e velocidade de ataque",
+                    "- Cada torre consome dinheiro; planeje seu orçamento",
+                    " entre construções e upgrades",
+                    "- Observe o relógio do jogo e adapte sua estratégia",
+                    " aos picos de tráfego",
+                    "- Ganhe dinheiro ao esvaziar totalmente um ônibus e ",
+                    " perca pontos quando alguém escapar"
                 ]
                 for i, line in enumerate(help_lines):
                     text = FONT_HUD.render(line, True, (255, 255, 255))
-                    screen.blit(text, (50, 50 + i*40))
+                    screen.blit(text, (50, 120 + i*40))
 
                 draw_button(screen, buttons_ui["back"])  # Desenha o botão de voltar
 
